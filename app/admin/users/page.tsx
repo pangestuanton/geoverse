@@ -14,12 +14,16 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  const fetchUsers = () => {
+    getAllUsers()
+      .then(setUsers)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => {
     if (!authLoading && isAdmin) {
-      getAllUsers()
-        .then(setUsers)
-        .catch(console.error)
-        .finally(() => setLoading(false));
+      fetchUsers();
     }
   }, [authLoading, isAdmin]);
 
@@ -47,7 +51,7 @@ export default function AdminUsersPage() {
             />
           </div>
         </div>
-        <UserTable users={users} searchQuery={search} />
+        <UserTable users={users} searchQuery={search} onUpdate={fetchUsers} />
       </div>
     </AdminSidebar>
   );

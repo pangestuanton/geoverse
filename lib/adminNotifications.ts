@@ -1,6 +1,3 @@
-import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
-import { getFirebaseDB } from "./firebase";
-
 export interface CreateAdminNotificationParams {
   type: "new_user" | "new_green_log" | "new_challenge" | "new_progress" | "user_activity";
   title: string;
@@ -12,53 +9,7 @@ export interface CreateAdminNotificationParams {
   sourceId?: string;
 }
 
-export async function createAdminNotification({
-  type,
-  title,
-  message,
-  userId,
-  userName,
-  userEmail,
-  sourceCollection,
-  sourceId,
-}: CreateAdminNotificationParams) {
-  try {
-    const db = getFirebaseDB();
-    let finalName = userName;
-    let finalEmail = userEmail;
-
-    // Lazily fetch user details if not provided to simplify caller side logic
-    if (!finalName || !finalEmail) {
-      if (typeof window !== "undefined" && !navigator.onLine) {
-        finalName = finalName || "Pengguna (Offline)";
-      } else {
-        try {
-          const userRef = doc(db, "users", userId);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            finalName = finalName || userData.name || userData.displayName;
-            finalEmail = finalEmail || userData.email;
-          }
-        } catch (e) {
-          console.warn("Gagal mengambil profil user untuk notifikasi:", e);
-        }
-      }
-    }
-
-    await addDoc(collection(db, "adminNotifications"), {
-      type,
-      title,
-      message,
-      userId,
-      userName: finalName || "Pengguna GeoVerse",
-      userEmail: finalEmail || "",
-      sourceCollection: sourceCollection || "",
-      sourceId: sourceId || "",
-      isRead: false,
-      createdAt: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error("Gagal membuat notifikasi admin:", error);
-  }
+export async function createAdminNotification(params: CreateAdminNotificationParams) {
+  // Fitur Dinonaktifkan: No-op
+  return;
 }

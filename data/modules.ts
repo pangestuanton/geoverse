@@ -60,6 +60,28 @@ export const modules: Module[] = [
         ],
         correctAnswer: 1,
       },
+      {
+        question:
+          "Apa keuntungan utama energi panas bumi dibandingkan dengan energi surya atau angin?",
+        options: [
+          "Tidak memerlukan generator",
+          "Dapat beroperasi terus-menerus tanpa bergantung cuaca (baseload)",
+          "Bebas dari biaya perawatan sama sekali",
+          "Dapat dipindahkan kemana saja dengan mudah",
+        ],
+        correctAnswer: 1,
+      },
+      {
+        question:
+          "Bagaimana uap panas bumi dialirkan dari sumur bor ke pembangkit listrik secara aman?",
+        options: [
+          "Melalui tangki penyimpanan terbuka",
+          "Melalui pipa isolasi baja bertekanan tinggi",
+          "Menggunakan pompa bertenaga minyak bumi",
+          "Dialirkan langsung lewat parit terbuka",
+        ],
+        correctAnswer: 1,
+      },
     ],
   },
   {

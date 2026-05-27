@@ -9,6 +9,7 @@ import Sidebar from "@/components/common/Sidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ModuleContent from "@/components/learn/ModuleContent";
 import QuizCard from "@/components/learn/QuizCard";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 import { modules } from "@/data/modules";
@@ -59,26 +60,39 @@ function ModuleDetailContent() {
   };
 
   const handleMarkComplete = async () => {
-    if (!user || quizScore === null) return;
+    if (quizScore === null) return;
     setSaving(true);
 
     try {
+      // Dapatkan sesi user terbaru secara aman langsung dari Supabase
+      const {
+        data: { user: freshUser },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !freshUser) {
+        toast.error("Silakan login terlebih dahulu.");
+        return;
+      }
+
+      const uid = freshUser.id;
+
       // Save progress
-      await saveModuleProgress(user.uid, module.id, quizScore);
+      await saveModuleProgress(uid, module.id, quizScore);
 
       // Picu notifikasi admin untuk penyelesaian modul belajar (non-blocking)
       createAdminNotification({
         type: "new_progress",
         title: "Modul Belajar Selesai",
         message: `Menyelesaikan modul "${module.title}" dengan skor kuis ${quizScore}%.`,
-        userId: user.uid,
+        userId: uid,
         sourceCollection: "progress",
         sourceId: module.id,
-      }).catch(console.error);
+      }).catch(console.warn);
 
       // Calculate and award points
       const points = calculateModulePoints(quizScore);
-      await updateUserPoints(user.uid, points);
+      await updateUserPoints(uid, points);
 
       // Check badge unlocks
       const completedModuleIds = [
@@ -96,7 +110,7 @@ function ModuleDetailContent() {
           completedChallenges: 0,
         });
         if (shouldUnlock) {
-          await saveUserBadge(user.uid, badge.id);
+          await saveUserBadge(uid, badge.id);
           toast.success(`Badge "${badge.name}" terbuka! ${badge.icon}`);
         }
       }
@@ -104,9 +118,17 @@ function ModuleDetailContent() {
       setCompleted(true);
       toast.success(`Modul selesai! +${points} poin diperoleh.`);
       refetch();
-    } catch (error) {
-      console.error(error);
-      toast.error("Gagal menyimpan progres. Coba lagi.");
+      router.refresh();
+    } catch (error: any) {
+      // Cetak error detail Supabase menggunakan console.warn agar tidak memicu Next.js devtools error overlay
+      console.warn("Gagal menyimpan progres modul:", {
+        message: error?.message || error,
+        details: error?.details || "",
+        hint: error?.hint || "",
+        code: error?.code || "",
+      });
+
+      toast.error(error?.message || "Gagal menyimpan progres. Coba lagi.");
     } finally {
       setSaving(false);
     }

@@ -1,60 +1,29 @@
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDB } from "./firebase";
-import { createAdminNotification } from "./adminNotifications";
+import { supabase } from "./supabase";
+import { User } from "@supabase/supabase-js";
 
-const googleProvider = new GoogleAuthProvider();
-
-export async function signInWithGoogle(): Promise<User> {
-  const auth = getFirebaseAuth();
-  const db = getFirebaseDB();
-  const result = await signInWithPopup(auth, googleProvider);
-  const user = result.user;
-
-  // Create user document if first login
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-
-  if (!userSnap.exists()) {
-    const displayName = user.displayName || "Pengguna GeoVerse";
-    await setDoc(userRef, {
-      uid: user.uid,
-      name: displayName,
-      email: user.email || "",
-      photoURL: user.photoURL || "",
-      totalPoints: 0,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-
-    // Picu notifikasi admin untuk pendaftaran pengguna baru (non-blocking)
-    createAdminNotification({
-      type: "new_user",
-      title: "Pengguna baru bergabung",
-      message: `${displayName} baru saja masuk ke GeoVerse.`,
-      userId: user.uid,
-      userName: displayName,
-      userEmail: user.email || undefined,
-      sourceCollection: "users",
-      sourceId: user.uid,
-    }).catch(console.error);
-  }
-
-  return user;
+export async function signInWithGoogle(): Promise<any> {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+    },
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function signOutUser(): Promise<void> {
-  await signOut(getFirebaseAuth());
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
 export function onAuthChange(callback: (user: User | null) => void) {
-  return onAuthStateChanged(getFirebaseAuth(), callback);
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(session?.user || null);
+  });
+  return () => {
+    subscription.unsubscribe();
+  };
 }
 
 export function isAdminEmail(email: string | null): boolean {

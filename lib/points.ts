@@ -1,4 +1,4 @@
-import type { GreenLog, BadgeCheckData } from "@/types";
+import type { BadgeCheckData } from "@/types";
 
 export function calculateGreenLogPoints(data: {
   estimatedKg: number;
