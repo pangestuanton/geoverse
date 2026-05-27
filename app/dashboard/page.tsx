@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, Leaf, Star, Award } from "lucide-react";
+import { BookOpen, Leaf, Star, Award, AlertTriangle } from "lucide-react";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import Sidebar from "@/components/common/Sidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -30,7 +30,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { user } = useAuth();
-  const { profile, progress, userBadges, loading: userLoading } = useUserData();
+  const { profile, progress, userBadges, loading: userLoading, isOffline } = useUserData();
   const { logs, loading: logsLoading } = useGreenLogs();
 
   if (userLoading || logsLoading) return <Sidebar><LoadingSpinner /></Sidebar>;
@@ -55,6 +55,16 @@ function DashboardContent() {
             <img src={user.photoURL} alt="" className="w-12 h-12 rounded-full border-2 border-emerald-200" referrerPolicy="no-referrer" />
           )}
         </div>
+
+        {/* Offline fallback warning */}
+        {isOffline && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm animate-fade-in-up">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 animate-pulse" />
+            <div className="flex-1">
+              <span className="font-semibold">Mode Offline Aktif</span> — Perangkat Anda sedang offline atau koneksi ke Firebase terputus. Beberapa data terbaru mungkin tidak termuat atau aksi yang Anda lakukan tidak tersimpan ke cloud.
+            </div>
+          </div>
+        )}
 
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,5 +1,3 @@
-"use client";
-import { motion } from "framer-motion";
 import { LogIn, BookOpen, ClipboardList, TrendingUp } from "lucide-react";
 
 const steps = [
@@ -13,29 +11,21 @@ export default function HowItWorksSection() {
   return (
     <section id="cara-kerja" className="py-24 bg-[#f0fdf4]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Cara Kerja GeoVerse
           </h2>
           <p className="text-slate-500 max-w-2xl mx-auto">
             Empat langkah sederhana untuk mulai belajar dan bergerak.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, i) => (
-            <motion.div
+            <div
               key={step.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.15 }}
-              className="relative text-center"
+              className="relative text-center animate-fade-in-up"
+              style={{ animationDelay: `${i * 150}ms` }}
             >
               {/* Connector line */}
               {i < steps.length - 1 && (
@@ -54,7 +44,7 @@ export default function HowItWorksSection() {
                 </h3>
                 <p className="text-sm text-slate-500">{step.description}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

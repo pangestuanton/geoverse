@@ -12,6 +12,7 @@ import {
   increment,
 } from "firebase/firestore";
 import { getFirebaseDB } from "./firebase";
+import { createAdminNotification } from "./adminNotifications";
 import type { GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
 
 // Helper to get db instance lazily
@@ -63,6 +64,16 @@ export async function addGreenLog(
 
   // Update user points
   await updateUserPoints(uid, logData.points);
+
+  // Picu notifikasi admin untuk Green Log baru
+  await createAdminNotification({
+    type: "new_green_log",
+    title: "Catatan Green Log Baru",
+    message: `Mencatat aksi hijau: ${logData.actionType} (${logData.estimatedKg} kg).`,
+    userId: uid,
+    sourceCollection: "greenLogs",
+    sourceId: docRef.id,
+  });
 
   return docRef.id;
 }
@@ -160,6 +171,16 @@ export async function saveUserBadge(uid: string, badgeId: string) {
     badgeId,
     unlocked: true,
     unlockedAt: serverTimestamp(),
+  });
+
+  // Picu notifikasi admin untuk pencapaian badge baru
+  await createAdminNotification({
+    type: "user_activity",
+    title: "Badge Baru Terbuka",
+    message: `Membuka badge pencapaian: ${badgeId}.`,
+    userId: uid,
+    sourceCollection: "badges",
+    sourceId: badgeId,
   });
 }
 

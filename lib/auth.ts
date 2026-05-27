@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDB } from "./firebase";
+import { createAdminNotification } from "./adminNotifications";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -21,14 +22,27 @@ export async function signInWithGoogle(): Promise<User> {
   const userSnap = await getDoc(userRef);
 
   if (!userSnap.exists()) {
+    const displayName = user.displayName || "Pengguna GeoVerse";
     await setDoc(userRef, {
       uid: user.uid,
-      name: user.displayName || "Pengguna GeoVerse",
+      name: displayName,
       email: user.email || "",
       photoURL: user.photoURL || "",
       totalPoints: 0,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+    });
+
+    // Picu notifikasi admin untuk pendaftaran pengguna baru
+    await createAdminNotification({
+      type: "new_user",
+      title: "Pengguna baru bergabung",
+      message: `${displayName} baru saja masuk ke GeoVerse.`,
+      userId: user.uid,
+      userName: displayName,
+      userEmail: user.email || undefined,
+      sourceCollection: "users",
+      sourceId: user.uid,
     });
   }
 

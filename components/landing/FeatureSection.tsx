@@ -1,5 +1,3 @@
-"use client";
-import { motion } from "framer-motion";
 import { Flame, Leaf, Target, BarChart3 } from "lucide-react";
 
 const features = [
@@ -37,29 +35,21 @@ export default function FeatureSection() {
   return (
     <section id="fitur" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Fitur Utama GeoVerse
           </h2>
           <p className="text-slate-500 max-w-2xl mx-auto">
             Platform edukasi yang menghubungkan literasi energi bersih dengan kebiasaan lingkungan sehari-hari.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, i) => (
-            <motion.div
+            <div
               key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="bg-white rounded-2xl p-6 border border-slate-100 hover:border-emerald-200 hover:shadow-lg transition-all group"
+              className={`bg-white rounded-2xl p-6 border border-slate-100 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 group hover:-translate-y-1 animate-fade-in-up`}
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
                 <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
@@ -70,7 +60,7 @@ export default function FeatureSection() {
               <p className="text-sm text-slate-500 leading-relaxed">
                 {feature.description}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

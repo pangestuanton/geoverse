@@ -1,6 +1,4 @@
-"use client";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Flame, Leaf, BarChart3 } from "lucide-react";
 
 export default function HeroSection() {
@@ -13,11 +11,7 @@ export default function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Leaf className="w-4 h-4" />
               Eco-Tech Education Platform
@@ -35,26 +29,21 @@ export default function HeroSection() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/login"
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-0.5"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-1 duration-300"
               >
                 Mulai Belajar
               </Link>
               <Link
                 href="/login"
-                className="bg-white hover:bg-emerald-50 text-emerald-700 border-2 border-emerald-200 px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+                className="bg-white hover:bg-emerald-50 text-emerald-700 border-2 border-emerald-200 px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-1 duration-300"
               >
                 Catat Green Log
               </Link>
             </div>
-          </motion.div>
+          </div>
 
           {/* Feature Preview Cards */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 gap-4"
-          >
+          <div className="grid grid-cols-1 gap-4 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             {[
               {
                 icon: Flame,
@@ -78,12 +67,10 @@ export default function HeroSection() {
                 iconColor: "text-blue-500",
               },
             ].map((item, i) => (
-              <motion.div
+              <div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.4 + i * 0.1 }}
-                className="bg-white rounded-2xl p-5 shadow-sm border border-emerald-100/50 hover:shadow-md transition-all hover:-translate-y-0.5 flex items-start gap-4"
+                className="bg-white rounded-2xl p-5 shadow-sm border border-emerald-100/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex items-start gap-4 animate-fade-in-up"
+                style={{ animationDelay: `${400 + i * 100}ms` }}
               >
                 <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center shrink-0`}>
                   <item.icon className={`w-6 h-6 ${item.iconColor}`} />
@@ -94,9 +81,9 @@ export default function HeroSection() {
                   </h3>
                   <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

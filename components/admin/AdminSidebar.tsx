@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Users, Leaf, BookOpen, Target, ArrowLeft, Menu, X, Shield } from "lucide-react";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 const adminLinks = [
   { label: "Ringkasan", href: "/admin", icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const adminLinks = [
 export default function AdminSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { unreadCount } = useAdminNotifications();
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -48,7 +50,12 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
               }`}
             >
               <link.icon className={`w-5 h-5 ${isActive ? "text-emerald-600" : ""}`} />
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {link.label === "Ringkasan" && unreadCount > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { signOutUser } from "@/lib/auth";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 const sidebarLinks = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,6 +32,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin } = useAuth();
+  const { unreadCount } = useAdminNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -79,7 +81,12 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-emerald-800 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-100 mt-4`}
           >
             <Shield className="w-5 h-5 text-emerald-600 animate-pulse" />
-            Panel Admin
+            <span className="flex-1">Panel Admin</span>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                {unreadCount}
+              </span>
+            )}
           </Link>
         )}
       </nav>
