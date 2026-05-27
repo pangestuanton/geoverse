@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { signOutUser } from "@/lib/auth";
@@ -29,7 +30,7 @@ const sidebarLinks = [
 export default function Sidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -71,6 +72,16 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-emerald-800 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-100 mt-4`}
+          >
+            <Shield className="w-5 h-5 text-emerald-600 animate-pulse" />
+            Panel Admin
+          </Link>
+        )}
       </nav>
 
       {/* User section */}
