@@ -33,8 +33,8 @@ export async function signInWithGoogle(): Promise<User> {
       updatedAt: serverTimestamp(),
     });
 
-    // Picu notifikasi admin untuk pendaftaran pengguna baru
-    await createAdminNotification({
+    // Picu notifikasi admin untuk pendaftaran pengguna baru (non-blocking)
+    createAdminNotification({
       type: "new_user",
       title: "Pengguna baru bergabung",
       message: `${displayName} baru saja masuk ke GeoVerse.`,
@@ -43,7 +43,7 @@ export async function signInWithGoogle(): Promise<User> {
       userEmail: user.email || undefined,
       sourceCollection: "users",
       sourceId: user.uid,
-    });
+    }).catch(console.error);
   }
 
   return user;

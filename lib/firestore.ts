@@ -65,15 +65,15 @@ export async function addGreenLog(
   // Update user points
   await updateUserPoints(uid, logData.points);
 
-  // Picu notifikasi admin untuk Green Log baru
-  await createAdminNotification({
+  // Picu notifikasi admin untuk Green Log baru (non-blocking)
+  createAdminNotification({
     type: "new_green_log",
     title: "Catatan Green Log Baru",
     message: `Mencatat aksi hijau: ${logData.actionType} (${logData.estimatedKg} kg).`,
     userId: uid,
     sourceCollection: "greenLogs",
     sourceId: docRef.id,
-  });
+  }).catch(console.error);
 
   return docRef.id;
 }
@@ -173,15 +173,15 @@ export async function saveUserBadge(uid: string, badgeId: string) {
     unlockedAt: serverTimestamp(),
   });
 
-  // Picu notifikasi admin untuk pencapaian badge baru
-  await createAdminNotification({
+  // Picu notifikasi admin untuk pencapaian badge baru (non-blocking)
+  createAdminNotification({
     type: "user_activity",
     title: "Badge Baru Terbuka",
     message: `Membuka badge pencapaian: ${badgeId}.`,
     userId: uid,
     sourceCollection: "badges",
     sourceId: badgeId,
-  });
+  }).catch(console.error);
 }
 
 export async function getUserBadges(uid: string): Promise<UserBadge[]> {

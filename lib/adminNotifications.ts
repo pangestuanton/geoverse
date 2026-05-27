@@ -29,12 +29,20 @@ export async function createAdminNotification({
 
     // Lazily fetch user details if not provided to simplify caller side logic
     if (!finalName || !finalEmail) {
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        finalName = finalName || userData.name || userData.displayName;
-        finalEmail = finalEmail || userData.email;
+      if (typeof window !== "undefined" && !navigator.onLine) {
+        finalName = finalName || "Pengguna (Offline)";
+      } else {
+        try {
+          const userRef = doc(db, "users", userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            finalName = finalName || userData.name || userData.displayName;
+            finalEmail = finalEmail || userData.email;
+          }
+        } catch (e) {
+          console.warn("Gagal mengambil profil user untuk notifikasi:", e);
+        }
       }
     }
 

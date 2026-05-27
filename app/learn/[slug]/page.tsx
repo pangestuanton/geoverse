@@ -66,15 +66,15 @@ function ModuleDetailContent() {
       // Save progress
       await saveModuleProgress(user.uid, module.id, quizScore);
 
-      // Picu notifikasi admin untuk penyelesaian modul belajar
-      await createAdminNotification({
+      // Picu notifikasi admin untuk penyelesaian modul belajar (non-blocking)
+      createAdminNotification({
         type: "new_progress",
         title: "Modul Belajar Selesai",
         message: `Menyelesaikan modul "${module.title}" dengan skor kuis ${quizScore}%.`,
         userId: user.uid,
         sourceCollection: "progress",
         sourceId: module.id,
-      });
+      }).catch(console.error);
 
       // Calculate and award points
       const points = calculateModulePoints(quizScore);
