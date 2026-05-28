@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import ToastProvider from "@/components/common/ToastProvider";
+import GeoVerseChatbot from "@/components/GeoVerseChatbot";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <ToastProvider />
+          <GeoVerseChatbot />
         </AuthProvider>
       </body>
     </html>
