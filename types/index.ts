@@ -1,11 +1,16 @@
 // GeoVerse Type Definitions
 
+export type UserRole = "user" | "admin";
+
 export interface UserProfile {
   uid: string;
-  name: string;
+  name: string; // nama Google (fallback)
+  displayName: string | null; // nama custom yang dipilih user
   email: string;
   photoURL: string;
+  role: UserRole;
   totalPoints: number;
+  profileSetupDone: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +28,9 @@ export interface GreenLog {
   note: string;
   points: number;
   status: "pending" | "approved" | "rejected";
+  rejectionReason?: string | null;
+  reviewedBy?: string | null; // uid admin
+  reviewedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +40,77 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
 }
+
+// ===== DB TYPES (modul dari Supabase, bukan static file) =====
+
+export interface QuizQuestionDB {
+  id: string;
+  moduleId: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  points: number;
+  sortOrder: number;
+  isDeleted: boolean;
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ModuleDB {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  categoryLabel: string;
+  readingTime: string;
+  difficulty: "Pemula" | "Menengah" | "Lanjutan";
+  content: string[];
+  keyPoints: string[];
+  reflection: string;
+  status: "draft" | "published";
+  sortOrder: number;
+  questions?: QuizQuestionDB[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Badge yang tersimpan di DB (dikontrol admin)
+export interface BadgeDB {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  icon: string; // emoji atau URL gambar
+  category: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// user_badges dengan relasi badge
+export interface UserBadgeWithDetails {
+  id: string;
+  userId: string;
+  badgeId: string;
+  badge: BadgeDB;
+  awardedBy: string | null; // uid admin, null = sistem
+  awardedNote: string | null;
+  unlockedAt: Date;
+}
+
+// Config dashboard dikontrol admin
+export interface DashboardConfig {
+  id: string;
+  key: string;
+  value: Record<string, unknown>;
+  isActive: boolean;
+  updatedAt: Date;
+}
+
+// ===== STATIC TYPES (backward compat) =====
 
 export interface Module {
   id: string;

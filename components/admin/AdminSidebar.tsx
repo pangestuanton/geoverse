@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, Leaf, BookOpen, Target, ArrowLeft, Menu, X, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Leaf, BookOpen, Target, ArrowLeft, Menu, X, Shield, Award, Settings } from "lucide-react";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 const adminLinks = [
@@ -12,6 +12,8 @@ const adminLinks = [
   { label: "Green Log", href: "/admin/green-logs", icon: Leaf },
   { label: "Modul", href: "/admin/modules", icon: BookOpen },
   { label: "Tantangan", href: "/admin/challenges", icon: Target },
+  { label: "Badge", href: "/admin/badges", icon: Award },
+  { label: "Konfigurasi", href: "/admin/dashboard-config", icon: Settings },
 ];
 
 export default function AdminSidebar({ children }: { children: React.ReactNode }) {
@@ -37,7 +39,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
 
       <nav className="flex-1 p-4 space-y-1">
         {adminLinks.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive = pathname === link.href || (link.href !== "/admin" && pathname.startsWith(link.href));
           return (
             <Link
               key={link.href}

@@ -1,5 +1,10 @@
-import { supabase } from "./supabase";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use server";
+
+import { getAdminSupabase } from "@/utils/supabase/server-admin";
 import { createAdminNotification } from "./adminNotifications";
+
+const supabase = getAdminSupabase();
 import type { GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
 
 // ===== MAPPING UTILITIES =====
@@ -7,9 +12,12 @@ function mapProfileFromDb(data: any): UserProfile {
   return {
     uid: data.uid,
     name: data.name,
+    displayName: data.display_name || null,
     email: data.email,
     photoURL: data.photo_url || "",
+    role: data.role || "user",
     totalPoints: data.total_points || 0,
+    profileSetupDone: data.profile_setup_done || false,
     createdAt: data.created_at ? new Date(data.created_at) : new Date(),
     updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
   };
@@ -29,6 +37,9 @@ function mapLogFromDb(data: any): GreenLog {
     note: data.note || "",
     points: data.points || 0,
     status: data.status,
+    rejectionReason: data.rejection_reason || null,
+    reviewedBy: data.reviewed_by || null,
+    reviewedAt: data.reviewed_at ? new Date(data.reviewed_at) : null,
     createdAt: data.created_at ? new Date(data.created_at) : new Date(),
     updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
   };
@@ -63,12 +74,12 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
       .maybeSingle();
 
     if (error) {
-      console.warn("Gagal membaca profil, memastikan tabel 'users' ada:", error);
+      console.warn("Gagal membaca profil:", error);
       return null;
     }
 
     if (!data) {
-      // Self-healing: buat baris profil di public.users jika terlewat oleh trigger database
+      // Self-healing: buat baris profil jika belum ada
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser && authUser.id === uid) {
         const { data: insertedData, error: insertError } = await supabase
@@ -76,9 +87,12 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
           .insert({
             uid: uid,
             name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || "Pengguna GeoVerse",
+            display_name: null,
             email: authUser.email || "",
             photo_url: authUser.user_metadata?.avatar_url || "",
+            role: "user",
             total_points: 0,
+            profile_setup_done: false,
           })
           .select("*")
           .single();
@@ -97,11 +111,26 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   }
 }
 
-export async function updateUserPoints(uid: string, points: number) {
-  // Pastikan profil user ada terlebih dahulu (self-healing)
-  await getUserProfile(uid);
+export async function updateUserProfile(uid: string, updates: { displayName?: string }) {
+  const payload: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (updates.displayName !== undefined) {
+    payload.display_name = updates.displayName;
+    payload.profile_setup_done = true;
+  }
 
-  // Dapatkan poin saat ini untuk menghindari kondisi balapan (race condition)
+  const { error } = await supabase
+    .from("users")
+    .update(payload)
+    .eq("uid", uid);
+
+  if (error) throw error;
+}
+
+export async function updateUserPoints(uid: string, points: number) {
+  await getUserProfile(uid); // self-healing
+
   const { data, error: selectError } = await supabase
     .from("users")
     .select("total_points")
@@ -114,7 +143,7 @@ export async function updateUserPoints(uid: string, points: number) {
   const { error } = await supabase
     .from("users")
     .update({
-      total_points: currentPoints + points,
+      total_points: Math.max(0, currentPoints + points),
       updated_at: new Date().toISOString(),
     })
     .eq("uid", uid);
@@ -126,7 +155,7 @@ export async function updateUserPoints(uid: string, points: number) {
 
 export async function addGreenLog(
   uid: string,
-  logData: Omit<GreenLog, "id" | "createdAt" | "updatedAt">
+  logData: Omit<GreenLog, "id" | "createdAt" | "updatedAt" | "rejectionReason" | "reviewedBy" | "reviewedAt">
 ) {
   const { data, error } = await supabase
     .from("green_logs")
@@ -141,7 +170,7 @@ export async function addGreenLog(
       location: logData.location,
       note: logData.note || "",
       points: logData.points,
-      status: logData.status || "pending",
+      status: "pending", // selalu pending saat submit, poin diberikan saat approved
     })
     .select("id")
     .single();
@@ -149,10 +178,9 @@ export async function addGreenLog(
   if (error) throw error;
   const logId = data.id;
 
-  // Update user points
-  await updateUserPoints(uid, logData.points);
+  // CATATAN: Poin TIDAK langsung diberikan saat submit.
+  // Poin diberikan saat admin approve (lihat updateGreenLogStatus).
 
-  // Picu notifikasi admin untuk Green Log baru
   createAdminNotification({
     type: "new_green_log",
     title: "Catatan Green Log Baru",
@@ -186,11 +214,18 @@ export async function getAllGreenLogs(): Promise<GreenLog[]> {
   return data.map(mapLogFromDb);
 }
 
+/**
+ * Update status green log dengan logika poin yang benar:
+ * - approved: poin diberikan (jika belum pernah approved sebelumnya)
+ * - rejected: poin dikurangi (jika sebelumnya sudah approved)
+ * - pending: poin dikurangi (jika sebelumnya approved), tidak ditambah lagi
+ */
 export async function updateGreenLogStatus(
   logId: string,
-  status: "pending" | "approved" | "rejected"
+  status: "pending" | "approved" | "rejected",
+  adminUid?: string,
+  rejectionReason?: string
 ) {
-  // Dapatkan detail log untuk melacak userId dan poin yang harus disesuaikan
   const { data: logData, error: fetchError } = await supabase
     .from("green_logs")
     .select("*")
@@ -206,20 +241,33 @@ export async function updateGreenLogStatus(
   const points = logData.points || 0;
 
   if (oldStatus !== status) {
-    // Lakukan penyesuaian poin jika berpindah ke/dari status rejected
-    if (status === "rejected" && oldStatus !== "rejected") {
-      await updateUserPoints(userId, -points);
-    } else if (oldStatus === "rejected" && status !== "rejected") {
+    // Logika poin:
+    // pending → approved: +poin
+    // approved → rejected: -poin
+    // approved → pending: -poin
+    // rejected → approved: +poin
+    // pending → rejected: tidak ada perubahan poin
+    if (status === "approved" && oldStatus !== "approved") {
       await updateUserPoints(userId, points);
+    } else if (oldStatus === "approved" && status !== "approved") {
+      await updateUserPoints(userId, -points);
     }
 
-    // Update status
+    const updatePayload: Record<string, any> = {
+      status,
+      reviewed_by: adminUid || null,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      rejection_reason: null,
+    };
+
+    if (status === "rejected" && rejectionReason) {
+      updatePayload.rejection_reason = rejectionReason;
+    }
+
     const { error: updateError } = await supabase
       .from("green_logs")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", logId);
 
     if (updateError) throw updateError;
@@ -288,6 +336,7 @@ export async function saveUserBadge(uid: string, badgeId: string) {
         badge_id: badgeId,
         unlocked: true,
         unlocked_at: new Date().toISOString(),
+        awarded_by: null, // null = sistem otomatis
       },
       {
         onConflict: "user_id,badge_id",
@@ -296,7 +345,6 @@ export async function saveUserBadge(uid: string, badgeId: string) {
 
   if (error) throw error;
 
-  // Picu notifikasi admin untuk pencapaian badge baru
   createAdminNotification({
     type: "user_activity",
     title: "Badge Baru Terbuka",

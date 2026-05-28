@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -12,11 +12,14 @@ import QuizCard from "@/components/learn/QuizCard";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
-import { modules } from "@/data/modules";
+import { getModuleBySlug } from "@/lib/modules";
 import { badges } from "@/data/badges";
 import { saveModuleProgress, updateUserPoints, saveUserBadge } from "@/lib/firestore";
-import { calculateModulePoints, checkBadgeUnlock } from "@/lib/points";
+import { calculateModulePoints } from "@/lib/points";
 import { createAdminNotification } from "@/lib/adminNotifications";
+import type { ModuleDB } from "@/types";
+// Konversi ModuleDB → format yang dipakai ModuleContent (backward compat)
+import type { Module } from "@/types";
 
 export default function ModuleDetailPage() {
   return (
@@ -34,16 +37,28 @@ function ModuleDetailContent() {
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [module, setModule] = useState<ModuleDB | null | undefined>(undefined); // undefined = loading
 
   const slug = params.slug as string;
-  const module = modules.find((m) => m.slug === slug);
+
+  useEffect(() => {
+    if (slug) {
+      getModuleBySlug(slug)
+        .then((m) => setModule(m))
+        .catch(() => setModule(null));
+    }
+  }, [slug]);
+
+  if (module === undefined) {
+    return <Sidebar><LoadingSpinner /></Sidebar>;
+  }
 
   if (!module) {
     return (
       <Sidebar>
         <div className="text-center py-20">
           <h2 className="text-xl font-semibold text-slate-800 mb-2">Modul tidak ditemukan</h2>
-          <p className="text-slate-500 mb-4">Modul yang kamu cari tidak tersedia.</p>
+          <p className="text-slate-500 mb-4">Modul yang kamu cari tidak tersedia atau sedang dalam perbaikan.</p>
           <Link href="/learn" className="text-emerald-600 hover:text-emerald-700 font-medium">
             ← Kembali ke daftar modul
           </Link>
@@ -64,7 +79,6 @@ function ModuleDetailContent() {
     setSaving(true);
 
     try {
-      // Dapatkan sesi user terbaru secara aman langsung dari Supabase
       const {
         data: { user: freshUser },
         error: userError,
@@ -77,10 +91,8 @@ function ModuleDetailContent() {
 
       const uid = freshUser.id;
 
-      // Save progress
       await saveModuleProgress(uid, module.id, quizScore);
 
-      // Picu notifikasi admin untuk penyelesaian modul belajar (non-blocking)
       createAdminNotification({
         type: "new_progress",
         title: "Modul Belajar Selesai",
@@ -90,11 +102,9 @@ function ModuleDetailContent() {
         sourceId: module.id,
       }).catch(console.warn);
 
-      // Calculate and award points
       const points = calculateModulePoints(quizScore);
       await updateUserPoints(uid, points);
 
-      // Check badge unlocks
       const completedModuleIds = [
         ...progress.filter((p) => p.completed).map((p) => p.moduleId),
         module.id,
@@ -120,38 +130,52 @@ function ModuleDetailContent() {
       refetch();
       router.refresh();
     } catch (error: any) {
-      // Cetak error detail Supabase menggunakan console.warn agar tidak memicu Next.js devtools error overlay
       console.warn("Gagal menyimpan progres modul:", {
         message: error?.message || error,
         details: error?.details || "",
         hint: error?.hint || "",
         code: error?.code || "",
       });
-
       toast.error(error?.message || "Gagal menyimpan progres. Coba lagi.");
     } finally {
       setSaving(false);
     }
   };
 
+  // Konversi ModuleDB ke format Module untuk komponen ModuleContent
+  const moduleForContent: Module = {
+    id: module.id,
+    slug: module.slug,
+    title: module.title,
+    description: module.description,
+    category: module.category,
+    categoryLabel: module.categoryLabel,
+    readingTime: module.readingTime,
+    difficulty: module.difficulty,
+    content: module.content,
+    keyPoints: module.keyPoints,
+    reflection: module.reflection,
+    quiz: (module.questions || []).map((q) => ({
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+    })),
+  };
+
   return (
     <Sidebar>
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* Back button */}
         <Link href="/learn" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Kembali ke daftar modul
         </Link>
 
-        {/* Module Content */}
-        <ModuleContent module={module} />
+        <ModuleContent module={moduleForContent} />
 
-        {/* Quiz */}
-        {!isAlreadyCompleted && (
-          <QuizCard questions={module.quiz} onComplete={handleQuizComplete} />
+        {!isAlreadyCompleted && moduleForContent.quiz.length > 0 && (
+          <QuizCard questions={moduleForContent.quiz} onComplete={handleQuizComplete} />
         )}
 
-        {/* Completion */}
         {isAlreadyCompleted ? (
           <div className="bg-emerald-50 rounded-2xl p-6 text-center border border-emerald-200">
             <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />

@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Belum ada test runner. Tambahkan vitest atau jest untuk unit test.\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
