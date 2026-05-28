@@ -1,143 +1,297 @@
-# GeoVerse — Platform Edukasi Lingkungan Digital
+# 🌍 GeoVerse — Platform Edukasi Lingkungan Digital
 
-GeoVerse adalah platform web edukasi digital yang dirancang untuk membantu anak muda Ulubelu memahami energi panas bumi, mencatat aksi pilah sampah melalui Green Log, dan membangun kebiasaan hijau berbasis komunitas.
+<div align="center">
 
-> **Catatan:** Ini adalah private prototype GeoVerse. Bukan produk komersial.
+### Edukasi Lingkungan Interaktif untuk Generasi Muda Ulubelu
 
----
+GeoVerse adalah platform edukasi lingkungan berbasis web yang dirancang untuk membantu generasi muda memahami energi panas bumi, membangun kebiasaan hijau, serta mencatat aksi lingkungan melalui sistem komunitas yang interaktif dan modern.
 
-## Fitur Utama
+<br/>
 
-- **Belajar Geothermal** — Modul edukasi singkat tentang energi panas bumi, pemilahan sampah, dan aksi iklim.
-- **Green Log** — Pencatatan aksi pilah sampah harian dengan validasi dan poin.
-- **Tantangan Komunitas** — Tantangan aksi lingkungan dengan durasi dan hadiah poin.
-- **Sistem Poin & Badge** — Poin otomatis dari aksi dan kuis, badge dari pencapaian.
-- **Dashboard Pengguna** — Statistik, grafik aktivitas, dan rekomendasi modul.
-- **Admin Lite Dashboard** — Monitoring aktivitas platform untuk admin.
-- **Login dengan Google** — Autentikasi menggunakan Firebase Authentication.
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-AI-black?style=for-the-badge)
 
----
-
-## Tech Stack
-
-- [Next.js](https://nextjs.org/) (App Router)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS](https://tailwindcss.com/) v4
-- [Firebase Authentication](https://firebase.google.com/docs/auth) (Google Login)
-- [Firebase Firestore](https://firebase.google.com/docs/firestore)
-- [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
-- [Recharts](https://recharts.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Lucide React](https://lucide.dev/)
+</div>
 
 ---
 
-## Cara Instalasi
+# 📖 Tentang Project
 
-### 1. Clone Repository
+GeoVerse merupakan platform edukasi digital yang menggabungkan pembelajaran lingkungan, gamifikasi, aksi komunitas, dan teknologi AI dalam satu ekosistem modern berbasis web.
+
+Platform ini dikembangkan untuk:
+- Mengenalkan energi panas bumi kepada masyarakat
+- Meningkatkan kesadaran lingkungan generasi muda
+- Membantu pengguna membangun kebiasaan hijau
+- Menghadirkan pengalaman belajar interaktif berbasis AI
+
+> ⚠️ **Catatan:**  
+> Repository ini merupakan private prototype GeoVerse dan belum ditujukan untuk penggunaan komersial maupun distribusi publik.
+
+---
+
+# ✨ Fitur Utama
+
+## 📚 Belajar Geothermal
+Modul edukasi interaktif mengenai:
+- Energi panas bumi
+- Pemilahan sampah
+- Aksi iklim
+- Edukasi lingkungan dasar
+
+---
+
+## ♻️ Green Log
+Sistem pencatatan aksi lingkungan harian:
+- Input aktivitas pilah sampah
+- Riwayat aksi pengguna
+- Validasi aktivitas
+- Sistem poin otomatis
+
+---
+
+## 🏆 Tantangan Komunitas
+Fitur challenge berbasis komunitas:
+- Tantangan mingguan
+- Tantangan bulanan
+- Reward poin
+- Progress pengguna
+
+---
+
+## 🎖️ Sistem Poin & Badge
+Gamifikasi interaktif:
+- Poin dari aksi lingkungan
+- Badge pencapaian
+- Reward aktivitas positif
+
+---
+
+## 📊 Dashboard Pengguna
+Dashboard modern dan interaktif:
+- Statistik aktivitas
+- Grafik progres pengguna
+- Total poin
+- Rekomendasi pembelajaran
+
+---
+
+## 🤖 GeoVerse AI Assistant
+Asisten AI interaktif yang terintegrasi langsung dalam platform GeoVerse.
+
+Fitur:
+- Tanya jawab edukasi lingkungan
+- Penjelasan energi panas bumi
+- Bantuan memahami modul belajar
+- Rekomendasi aksi hijau
+- Interaksi AI secara real-time
+
+### ⚡ AI Stack
+GeoVerse AI Assistant menggunakan:
+- OpenRouter API
+- Model AI: Qwen 3.7 Max
+
+AI dirancang untuk memberikan pengalaman belajar yang cepat, modern, dan lebih personal bagi pengguna.
+
+---
+
+## 🛠️ Admin Lite Dashboard
+Dashboard monitoring sederhana untuk admin:
+- Monitoring pengguna
+- Monitoring Green Log
+- Validasi aktivitas
+- Statistik platform
+
+---
+
+## 🔐 Authentication
+Sistem autentikasi menggunakan Supabase Auth:
+- Login Google
+- Session management
+- Protected route
+- Role-based access sederhana
+
+---
+
+# 🧰 Tech Stack
+
+| Technology | Description |
+|---|---|
+| Next.js App Router | React Framework |
+| TypeScript | Static Type Checking |
+| Tailwind CSS v4 | Utility-first CSS |
+| Supabase Auth | Authentication |
+| Supabase Database | Backend Database |
+| OpenRouter API | AI Gateway |
+| Qwen 3.7 Max | AI Model |
+| React Hook Form | Form Management |
+| Zod | Schema Validation |
+| Recharts | Data Visualization |
+| Framer Motion | Animation Library |
+| Lucide React | Icon Library |
+
+---
+
+# 🚀 Instalasi Project
+
+## 1. Clone Repository
 
 ```bash
 git clone <repository-url>
 cd geoverse
 ```
 
-### 2. Install Dependencies
+---
+
+## 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Siapkan Firebase
+---
 
-1. Buka [Firebase Console](https://console.firebase.google.com/).
-2. Buat project baru atau gunakan project yang sudah ada.
-3. Aktifkan **Authentication** → pilih **Google** sebagai provider.
-4. Aktifkan **Firestore Database** dalam mode test atau atur rules sesuai kebutuhan.
-5. Salin konfigurasi Firebase dari **Project Settings** → **General** → **Your apps** → **Web app**.
+## 3. Setup Supabase
 
-### 4. Isi Environment Variables
+1. Buka Supabase Dashboard
+2. Buat project baru
+3. Aktifkan Authentication
+4. Aktifkan Google Provider
+5. Salin Project URL dan Anon Key
 
-Salin file `.env.example` menjadi `.env.local`:
+---
+
+## 4. Setup OpenRouter
+
+1. Buka OpenRouter
+2. Buat API Key baru
+3. Gunakan model:
+   ```txt
+   qwen/qwen3-37b-a22b
+   ```
+
+---
+
+## 5. Setup Environment Variables
+
+Salin file `.env.example` menjadi `.env.local`
 
 ```bash
 cp .env.example .env.local
 ```
 
-Isi dengan konfigurasi Firebase:
+Isi dengan konfigurasi berikut:
 
 ```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Admin
 NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
+
+# OpenRouter
+OPENROUTER_API_KEY=your-openrouter-api-key
+OPENROUTER_MODEL=qwen/qwen3-37b-a22b
 ```
 
-> **NEXT_PUBLIC_ADMIN_EMAILS**: Daftar email admin yang dipisahkan koma. Hanya email ini yang dapat mengakses `/admin`.
+---
 
-### 5. Jalankan Project
+## 6. Jalankan Development Server
 
 ```bash
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) di browser.
+Buka browser:
+
+```txt
+http://localhost:3000
+```
 
 ---
 
-## Struktur Folder
+# 📁 Struktur Folder
 
-```
+```txt
 geoverse/
-├── app/                  # Next.js App Router pages
-│   ├── layout.tsx        # Root layout
-│   ├── page.tsx          # Landing page
-│   ├── login/            # Halaman login
-│   ├── dashboard/        # Dashboard pengguna
-│   ├── learn/            # Modul belajar
-│   ├── green-log/        # Pencatatan Green Log
-│   ├── challenges/       # Tantangan komunitas
-│   ├── badges/           # Badge & penghargaan
-│   ├── profile/          # Profil pengguna
-│   └── admin/            # Admin Lite Dashboard
-├── components/           # Komponen React
-│   ├── common/           # Komponen umum (Navbar, Sidebar, dll.)
-│   ├── landing/          # Komponen landing page
-│   ├── dashboard/        # Komponen dashboard
-│   ├── learn/            # Komponen modul belajar
-│   ├── green-log/        # Komponen Green Log
-│   ├── challenges/       # Komponen tantangan
-│   ├── badges/           # Komponen badge
-│   └── admin/            # Komponen admin
-├── lib/                  # Library dan helper
-│   ├── firebase.ts       # Konfigurasi Firebase
-│   ├── auth.ts           # Auth helpers
-│   ├── firestore.ts      # Firestore CRUD
-│   ├── points.ts         # Kalkulasi poin
-│   └── validations.ts    # Validasi Zod
-├── hooks/                # Custom React hooks
-├── data/                 # Data statis (modul, tantangan, badge)
-├── types/                # TypeScript type definitions
-└── public/               # Aset statis
+├── app/
+│   ├── dashboard/
+│   ├── learn/
+│   ├── green-log/
+│   ├── challenges/
+│   ├── assistant-ai/
+│   ├── profile/
+│   ├── admin/
+│   └── api/
+│
+├── components/
+├── hooks/
+├── lib/
+├── services/
+├── types/
+├── public/
+├── styles/
+└── utils/
 ```
 
 ---
 
-## Catatan Admin Dashboard
+# ⚡ Fokus Pengembangan
 
-Admin dashboard hanya dapat diakses oleh email yang tercantum di `NEXT_PUBLIC_ADMIN_EMAILS`. Dashboard ini bersifat sederhana dan ditujukan untuk monitoring, bukan manajemen enterprise.
+GeoVerse dikembangkan dengan fokus:
+- Lightweight performance
+- Mobile-first design
+- Responsive UI
+- Clean architecture
+- Reusable component
+- Fast loading
+- Modern UI/UX
+- AI-integrated experience
+- Scalability
+
+---
+
+# 📌 Catatan Admin Dashboard
+
+Admin dashboard hanya dapat diakses oleh email yang terdaftar pada:
+
+```env
+NEXT_PUBLIC_ADMIN_EMAILS
+```
 
 Fitur admin:
-- Ringkasan platform (total pengguna, Green Log, sampah terpilah)
-- Daftar pengguna
-- Catatan Green Log (dengan fitur ubah status: Menunggu/Disetujui/Ditolak)
-- Daftar modul (read-only)
-- Daftar tantangan (read-only)
+- Monitoring pengguna
+- Monitoring Green Log
+- Validasi aktivitas pengguna
+- Statistik platform
 
 ---
 
-## Lisensi
+# 🔒 Status Project
 
-Private prototype. Tidak untuk distribusi publik.
+```txt
+Private Prototype
+```
+
+Project masih dalam tahap pengembangan aktif dan belum dirilis untuk publik.
+
+---
+
+# 📄 Lisensi
+
+Private Prototype — Tidak untuk distribusi publik.
+
+---
+
+<div align="center">
+
+### 🌱 Build for Better Environment
+
+GeoVerse © 2026
+
+</div>
+```
