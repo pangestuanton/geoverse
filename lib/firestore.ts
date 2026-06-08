@@ -3,6 +3,7 @@
 
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
 import { createAdminNotification } from "./adminNotifications";
+import { isAdminEmail } from "./auth";
 
 const supabase = getAdminSupabase();
 import type { GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
@@ -90,7 +91,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
             display_name: null,
             email: authUser.email || "",
             photo_url: authUser.user_metadata?.avatar_url || "",
-            role: "user",
+            role: isAdminEmail(authUser.email || null) ? "admin" : "user",
             total_points: 0,
             profile_setup_done: false,
           })

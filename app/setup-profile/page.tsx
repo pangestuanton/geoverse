@@ -60,7 +60,7 @@ export default function SetupProfilePage() {
           display_name: trimmedName,
           photo_url: user.photoURL || "",
           profile_setup_done: true,
-          role: "user",
+          role: user.role,
           total_points: 0,
         },
         { onConflict: "uid" }
