@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import { isAdminEmail } from "@/lib/auth";
+import { getAdminSupabase } from "@/utils/supabase/server-admin";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -28,11 +30,14 @@ export async function GET(request: NextRequest) {
 
     if (data.user) {
       // Cek apakah user sudah setup profil
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("profile_setup_done, role")
         .eq("uid", data.user.id)
         .maybeSingle();
+
+      const email = data.user.email ?? null;
+      const isUserAdmin = isAdminEmail(email);
 
       if (!profile) {
         // User belum ada di tabel users (pertama kali login Google)
@@ -43,15 +48,25 @@ export async function GET(request: NextRequest) {
           name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || "Pengguna GeoVerse",
           display_name: null,
           photo_url: data.user.user_metadata?.avatar_url || "",
-          role: "user",
+          role: isUserAdmin ? "admin" : "user",
           total_points: 0,
           profile_setup_done: false,
         }, { onConflict: "uid" });
 
+        if (isUserAdmin) {
+          return NextResponse.redirect(`${origin}/admin`);
+        }
         return NextResponse.redirect(`${origin}/setup-profile`);
       }
 
-      if (!profile.profile_setup_done) {
+      // Self-healing: jika email terdaftar di admin tapi di DB masih 'user'
+      if (profile && profile.role !== "admin" && isUserAdmin) {
+        const adminSupabase = getAdminSupabase();
+        await adminSupabase.from("users").update({ role: "admin" }).eq("uid", data.user.id);
+        profile.role = "admin";
+      }
+
+      if (!profile.profile_setup_done && profile.role !== "admin") {
         return NextResponse.redirect(`${origin}/setup-profile`);
       }
 
