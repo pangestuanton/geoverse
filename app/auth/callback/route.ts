@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import { isAdminEmail } from "@/lib/auth";
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
 
@@ -10,9 +9,25 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type"); // 'recovery' untuk password reset
   const next = searchParams.get("next") ?? "/dashboard";
 
+  // Create redirect response first so we can write cookies directly onto it
+  const response = NextResponse.redirect(`${origin}/dashboard`);
+
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vcaqoepveroxvreswycv.supabase.co";
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_J1U0_Z2aDBvBZ50EsGoMtg_N-r4c5vq";
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll().map(c => ({ name: c.name, value: c.value }));
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    });
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -24,8 +39,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === "recovery") {
-      // Password reset flow → arahkan ke halaman update password
-      return NextResponse.redirect(`${origin}/auth/update-password`);
+      response.headers.set("Location", `${origin}/auth/update-password`);
+      return response;
     }
 
     if (data.user) {
@@ -54,9 +69,11 @@ export async function GET(request: NextRequest) {
         }, { onConflict: "uid" });
 
         if (isUserAdmin) {
-          return NextResponse.redirect(`${origin}/admin`);
+          response.headers.set("Location", `${origin}/admin`);
+        } else {
+          response.headers.set("Location", `${origin}/setup-profile`);
         }
-        return NextResponse.redirect(`${origin}/setup-profile`);
+        return response;
       }
 
       // Self-healing: jika email terdaftar di admin tapi di DB masih 'user'
@@ -67,15 +84,18 @@ export async function GET(request: NextRequest) {
       }
 
       if (!profile.profile_setup_done && profile.role !== "admin") {
-        return NextResponse.redirect(`${origin}/setup-profile`);
+        response.headers.set("Location", `${origin}/setup-profile`);
+        return response;
       }
 
       // Admin → dashboard admin, user biasa → dashboard user
       if (profile.role === "admin") {
-        return NextResponse.redirect(`${origin}/admin`);
+        response.headers.set("Location", `${origin}/admin`);
+      } else {
+        response.headers.set("Location", `${origin}${next}`);
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return response;
     }
   }
 
