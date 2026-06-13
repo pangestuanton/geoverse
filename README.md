@@ -92,7 +92,7 @@ Fitur:
 ### ⚡ AI Stack
 GeoVerse AI Assistant menggunakan:
 - OpenRouter API
-- Model AI: Qwen 3.7 Max
+- Model AI: Google Gemini 2.0 Flash
 
 AI dirancang untuk memberikan pengalaman belajar yang cepat, modern, dan lebih personal bagi pengguna.
 
@@ -126,7 +126,7 @@ Sistem autentikasi menggunakan Supabase Auth:
 | Supabase Auth | Authentication |
 | Supabase Database | Backend Database |
 | OpenRouter API | AI Gateway |
-| Qwen 3.7 Max | AI Model |
+| Google Gemini 2.0 Flash | AI Model |
 | React Hook Form | Form Management |
 | Zod | Schema Validation |
 | Recharts | Data Visualization |
@@ -170,7 +170,7 @@ npm install
 2. Buat API Key baru
 3. Gunakan model:
    ```txt
-   qwen/qwen3-37b-a22b
+   google/gemini-2.5-flash
    ```
 
 ---
