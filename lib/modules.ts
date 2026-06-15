@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
 
 import { supabase } from "./supabase";
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
