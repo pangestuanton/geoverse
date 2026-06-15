@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { supabase } from "./supabase";
-import { getAdminSupabase } from "@/utils/supabase/server-admin";
 
 export interface AnnouncementConfig {
   title: string;
@@ -66,6 +65,7 @@ export async function getDashboardConfig(): Promise<DashboardSectionConfig> {
 export async function getAllDashboardConfigsAdmin(): Promise<
   { id: string; key: string; value: Record<string, unknown>; isActive: boolean }[]
 > {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
   const { data, error } = await adminSupabase
     .from("dashboard_config")
@@ -86,6 +86,7 @@ export async function upsertDashboardConfig(
   value: Record<string, unknown>,
   isActive: boolean
 ): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { error } = await adminSupabase

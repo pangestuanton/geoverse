@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { supabase } from "./supabase";
-import { getAdminSupabase } from "@/utils/supabase/server-admin";
 import type { ModuleDB, QuizQuestionDB } from "@/types";
 import { modules as staticModules } from "@/data/modules";
 import type { Module } from "@/types";
@@ -53,6 +52,7 @@ function mapQuestionFromDb(data: any): QuizQuestionDB {
  * Berfungsi sebagai self-healing agar admin dashboard langsung terisi modul default.
  */
 export async function seedStaticModules(): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   try {
@@ -196,6 +196,7 @@ export async function getModuleBySlug(slug: string): Promise<ModuleDB | null> {
 export async function getAllModulesAdmin(): Promise<ModuleDB[]> {
   await seedStaticModules();
 
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
   const { data, error } = await adminSupabase
     .from("modules")
@@ -207,6 +208,7 @@ export async function getAllModulesAdmin(): Promise<ModuleDB[]> {
 }
 
 export async function getModuleWithQuestionsAdmin(moduleId: string): Promise<ModuleDB | null> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data: module, error } = await adminSupabase
@@ -228,6 +230,7 @@ export async function getModuleWithQuestionsAdmin(moduleId: string): Promise<Mod
 }
 
 export async function createModule(moduleData: Omit<ModuleDB, "id" | "createdAt" | "updatedAt" | "questions">): Promise<ModuleDB> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data, error } = await adminSupabase
@@ -257,6 +260,7 @@ export async function updateModule(
   moduleId: string,
   updates: Partial<Omit<ModuleDB, "id" | "createdAt" | "updatedAt" | "questions">>
 ): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const payload: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -292,6 +296,7 @@ export async function createQuizQuestion(
   moduleId: string,
   question: Omit<QuizQuestionDB, "id" | "moduleId" | "createdAt" | "updatedAt" | "isDeleted" | "version">
 ): Promise<QuizQuestionDB> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data, error } = await adminSupabase
@@ -316,6 +321,7 @@ export async function updateQuizQuestion(
   questionId: string,
   updates: Partial<Omit<QuizQuestionDB, "id" | "moduleId" | "createdAt" | "isDeleted">>
 ): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data: existing } = await adminSupabase
@@ -344,6 +350,7 @@ export async function updateQuizQuestion(
 }
 
 export async function softDeleteQuizQuestion(questionId: string): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { error } = await adminSupabase

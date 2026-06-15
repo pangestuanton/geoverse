@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getAdminSupabase } from "@/utils/supabase/server-admin";
 import { createAdminNotification } from "./adminNotifications";
 import { isAdminEmail } from "./auth";
-
-const supabase = getAdminSupabase();
 import type { GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
+import { supabase } from "./supabase";
 
 // ===== MAPPING UTILITIES =====
 function mapProfileFromDb(data: any): UserProfile {
@@ -368,7 +366,9 @@ export async function getUserBadges(uid: string): Promise<UserBadge[]> {
 // ===== ADMIN =====
 
 export async function getAllUsers(): Promise<UserProfile[]> {
-  const { data, error } = await supabase
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
+  const adminSupabase = getAdminSupabase();
+  const { data, error } = await adminSupabase
     .from("users")
     .select("*")
     .order("created_at", { ascending: false });
@@ -381,7 +381,9 @@ export async function adminUpdateUserProfile(
   uid: string,
   updates: { name: string; totalPoints: number }
 ) {
-  const { error } = await supabase
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
+  const adminSupabase = getAdminSupabase();
+  const { error } = await adminSupabase
     .from("users")
     .update({
       name: updates.name,

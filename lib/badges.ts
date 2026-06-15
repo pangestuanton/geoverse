@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getAdminSupabase } from "@/utils/supabase/server-admin";
 import { supabase } from "./supabase";
 import type { BadgeDB, UserBadgeWithDetails } from "@/types";
 
@@ -59,6 +58,7 @@ export async function getUserBadgesWithDetails(userId: string): Promise<UserBadg
 // ===== ADMIN =====
 
 export async function getAllBadgesAdmin(): Promise<BadgeDB[]> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
   const { data, error } = await adminSupabase
     .from("badges")
@@ -72,6 +72,7 @@ export async function getAllBadgesAdmin(): Promise<BadgeDB[]> {
 export async function createBadge(
   badgeData: Omit<BadgeDB, "id" | "createdAt" | "updatedAt" | "isActive">
 ): Promise<BadgeDB> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data, error } = await adminSupabase
@@ -100,6 +101,7 @@ export async function updateBadge(
   badgeId: string,
   updates: Partial<Omit<BadgeDB, "id" | "createdAt" | "updatedAt">>
 ): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const payload: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -132,6 +134,7 @@ export async function awardBadgeToUser(
   adminUid: string,
   note?: string
 ): Promise<void> {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   // Cek apakah user sudah punya badge ini
@@ -166,6 +169,7 @@ export async function awardBadgeToUser(
 export async function getAllUserBadgesAdmin(): Promise<
   { userId: string; userName: string; badgeId: string; badgeName: string; awardedBy: string | null; unlockedAt: Date }[]
 > {
+  const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
   const { data, error } = await adminSupabase
