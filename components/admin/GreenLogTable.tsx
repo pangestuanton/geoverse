@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Filter, CheckCircle, XCircle, Clock, ChevronDown, X, AlertCircle } from "lucide-react";
+import { Filter, CheckCircle, XCircle, Clock, X, AlertCircle } from "lucide-react";
 import type { GreenLog, GreenLogStatus } from "@/types";
 import { STATUS_LABELS } from "@/types";
 
@@ -73,7 +73,7 @@ export default function GreenLogTable({ logs, onApprove, onReject }: GreenLogTab
     try {
       await onReject(rejectModal.logId, trimmed);
       closeRejectModal();
-    } catch (err) {
+    } catch {
       setRejectError("Gagal menolak log. Coba lagi.");
     } finally {
       setProcessingId(null);

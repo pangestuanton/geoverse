@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     if (data.user) {
       // Cek apakah user sudah setup profil
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("users")
         .select("profile_setup_done, role")
         .eq("uid", data.user.id)

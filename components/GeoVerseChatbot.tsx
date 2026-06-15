@@ -23,12 +23,19 @@ export default function GeoVerseChatbot() {
   // Inisialisasi percakapan pertama kali
   useEffect(() => {
     const greetingName = user?.displayName || "Pengguna";
-    setMessages([
-      {
-        role: "assistant",
-        content: `Halo ${greetingName}! Saya GeoVerse Assistant. 🌍 Ada yang bisa saya bantu terkait geografi, energi panas bumi, pilah sampah, atau seputar platform GeoVerse?`,
-      },
-    ]);
+    let active = true;
+    Promise.resolve().then(() => {
+      if (!active) return;
+      setMessages([
+        {
+          role: "assistant",
+          content: `Halo ${greetingName}! Saya GeoVerse Assistant. Ada yang bisa saya bantu terkait geografi, energi panas bumi, pilah sampah, atau seputar platform GeoVerse?`,
+        },
+      ]);
+    });
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   // Auto-scroll ke bawah setiap ada pesan baru
@@ -107,7 +114,7 @@ export default function GeoVerseChatbot() {
                   </h3>
                   <span className="text-[10px] text-emerald-100/90 font-medium flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping"></span>
-                    Online • Asisten AI
+                    Online | Asisten AI
                   </span>
                 </div>
               </div>

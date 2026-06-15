@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Plus, BookOpen, Eye, EyeOff, Edit, Loader2 } from "lucide-react";
+import { Plus, BookOpen, Eye, EyeOff, Edit } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -17,7 +17,7 @@ export default function AdminModulesPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const fetchModules = async () => {
+  const fetchModules = useCallback(async () => {
     try {
       const data = await getAllModulesAdmin();
       setModules(data);
@@ -27,11 +27,13 @@ export default function AdminModulesPage() {
     } finally {
       setDataLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (!loading && isAdmin) fetchModules();
-  }, [loading, isAdmin]);
+    if (!loading && isAdmin) {
+      void Promise.resolve().then(fetchModules);
+    }
+  }, [loading, isAdmin, fetchModules]);
 
   const handleCreate = async (data: ModuleFormData) => {
     await createModule({

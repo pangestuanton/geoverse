@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Leaf, Star, Award, AlertTriangle, Megaphone, X } from "lucide-react";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
@@ -17,11 +18,13 @@ const DashboardChart = dynamic(() => import("@/components/dashboard/DashboardCha
 });
 import RecentGreenLogs from "@/components/dashboard/RecentGreenLogs";
 import RecommendedModule from "@/components/dashboard/RecommendedModule";
+import BadgeCard from "@/components/badges/BadgeCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 import { useGreenLogs } from "@/hooks/useGreenLogs";
 import { getDashboardConfig } from "@/lib/dashboard";
 import type { DashboardSectionConfig } from "@/lib/dashboard";
+import { badges as staticBadges } from "@/data/badges";
 
 export default function DashboardPage() {
   return (
@@ -54,6 +57,8 @@ function DashboardContent() {
   const completedModuleIds = progress.filter((p) => p.completed).map((p) => p.moduleId);
   // Prioritaskan displayName (custom name) dari useAuth, lalu profile, lalu fallback
   const displayName = user?.displayName || profile?.displayName || profile?.name || "Pengguna";
+  const unlockedStaticBadgeIds = userBadges.filter((b) => b.unlocked).map((b) => b.badgeId);
+  const earnedStaticBadges = staticBadges.filter((b) => unlockedStaticBadgeIds.includes(b.id));
 
   return (
     <Sidebar>
@@ -69,7 +74,14 @@ function DashboardContent() {
             </p>
           </div>
           {user?.photoURL && (
-            <img src={user.photoURL} alt="" className="w-12 h-12 rounded-full border-2 border-emerald-200" referrerPolicy="no-referrer" />
+            <Image
+              src={user.photoURL}
+              alt=""
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-full border-2 border-emerald-200 object-cover"
+              referrerPolicy="no-referrer"
+            />
           )}
         </div>
 
@@ -97,7 +109,7 @@ function DashboardContent() {
           <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm animate-fade-in-up">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 animate-pulse" />
             <div className="flex-1">
-              <span className="font-semibold">Mode Offline Aktif</span> — Perangkat Anda sedang offline. Beberapa data terbaru mungkin tidak termuat.
+              <span className="font-semibold">Mode Offline Aktif</span> - Perangkat Anda sedang offline. Beberapa data terbaru mungkin tidak termuat.
             </div>
           </div>
         )}
@@ -108,6 +120,39 @@ function DashboardContent() {
           <StatCard title="Total Green Log" value={logs.length} icon={Leaf} />
           <StatCard title="Poin Hijau" value={profile?.totalPoints || 0} icon={Star} color="text-amber-600" bgColor="bg-amber-50" />
           <StatCard title="Badge Diperoleh" value={userBadges.filter((b) => b.unlocked).length} icon={Award} color="text-purple-600" bgColor="bg-purple-50" />
+        </div>
+
+        {/* Badge Preview */}
+        <div className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Badge Terbuka
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Badge yang sudah kamu buka akan tampil di sini.
+              </p>
+            </div>
+            <Link href="/badges" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+              Lihat semua
+            </Link>
+          </div>
+
+          {earnedStaticBadges.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {earnedStaticBadges.map((badge) => (
+                <BadgeCard key={badge.id} badge={badge} isUnlocked={true} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-6 text-center">
+              <Award className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
+              <p className="font-semibold text-slate-700">Belum ada badge terbuka</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Ikuti modul belajar dan catat Green Log untuk mulai membuka badge.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Charts */}

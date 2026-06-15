@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Leaf, BookOpen, Award, LogOut, Edit2, User } from "lucide-react";
+import Image from "next/image";
+import { Star, Leaf, BookOpen, Award, LogOut, Edit2 } from "lucide-react";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import Sidebar from "@/components/common/Sidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -10,9 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 import { useGreenLogs } from "@/hooks/useGreenLogs";
 import { signOutUser } from "@/lib/auth";
-import { getUserBadgesWithDetails } from "@/lib/badges";
 import { badges as staticBadges } from "@/data/badges";
-import type { UserBadgeWithDetails } from "@/types";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -28,21 +26,8 @@ function ProfileContent() {
   const { user } = useAuth();
   const { profile, progress, userBadges, loading: userLoading } = useUserData();
   const { logs, loading: logsLoading } = useGreenLogs();
-  const [dbBadges, setDbBadges] = useState<UserBadgeWithDetails[]>([]);
-  const [badgesLoading, setBadgesLoading] = useState(true);
 
-  useEffect(() => {
-    if (user?.uid) {
-      getUserBadgesWithDetails(user.uid)
-        .then(setDbBadges)
-        .catch(() => setBadgesLoading(false))
-        .finally(() => setBadgesLoading(false));
-    } else {
-      setBadgesLoading(false);
-    }
-  }, [user?.uid]);
-
-  if (userLoading || logsLoading || badgesLoading) return <Sidebar><LoadingSpinner /></Sidebar>;
+  if (userLoading || logsLoading) return <Sidebar><LoadingSpinner /></Sidebar>;
 
   const completedModules = progress.filter((p) => p.completed).length;
 
@@ -54,6 +39,7 @@ function ProfileContent() {
 
   const unlockedStaticBadgeIds = userBadges.filter((b) => b.unlocked).map((b) => b.badgeId);
   const earnedStaticBadges = staticBadges.filter((b) => unlockedStaticBadgeIds.includes(b.id));
+  const hasAnyBadge = earnedStaticBadges.length > 0;
 
   const handleLogout = async () => {
     await signOutUser();
@@ -66,7 +52,14 @@ function ProfileContent() {
         {/* Profile Header */}
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-emerald-100 text-center">
           {user?.photoURL ? (
-            <img src={user.photoURL} alt="" className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-emerald-200" referrerPolicy="no-referrer" />
+            <Image
+              src={user.photoURL}
+              alt=""
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-emerald-200 object-cover"
+              referrerPolicy="no-referrer"
+            />
           ) : (
             <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl font-bold text-emerald-600">{displayName.charAt(0).toUpperCase()}</span>
@@ -117,52 +110,49 @@ function ProfileContent() {
           </div>
           <div className="bg-white rounded-xl p-4 text-center border border-emerald-100">
             <Award className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-            <p className="text-xl font-bold text-slate-800">{dbBadges.length || unlockedStaticBadgeIds.length}</p>
+            <p className="text-xl font-bold text-slate-800">{earnedStaticBadges.length}</p>
             <p className="text-xs text-slate-500">Badge</p>
           </div>
         </div>
 
-        {/* DB Badges */}
-        {dbBadges.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Badge yang Diperoleh
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {dbBadges.map((ub) => (
-                <div key={ub.id} className="bg-white rounded-xl border border-emerald-100 p-4 flex items-start gap-3">
-                  <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl shrink-0">
-                    {ub.badge.icon}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">{ub.badge.name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{ub.badge.description}</p>
-                    {ub.awardedNote && (
-                      <p className="text-xs text-emerald-600 mt-1 italic">"{ub.awardedNote}"</p>
-                    )}
-                    <p className="text-xs text-slate-400 mt-1">
-                      {ub.unlockedAt.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+        {/* Badge Section */}
+        <div>
+          <div className="flex items-end justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Badge yang Diperoleh
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Badge tampil di sini setelah terbuka lewat aktivitas belajar atau aksi hijau.
+              </p>
             </div>
+            <Link href="/badges" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+              Lihat semua badge
+            </Link>
           </div>
-        )}
 
-        {/* Fallback: Static badges (jika DB badges kosong) */}
-        {dbBadges.length === 0 && earnedStaticBadges.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Badge yang Diperoleh
-            </h2>
+          {hasAnyBadge ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {earnedStaticBadges.map((badge) => (
                 <BadgeCard key={badge.id} badge={badge} isUnlocked={true} />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-6 text-center">
+              <Award className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
+              <p className="font-semibold text-slate-700">Belum ada badge terbuka</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Selesaikan modul dan catatan Green Log untuk mulai mengumpulkan badge.
+              </p>
+              <Link
+                href="/learn"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
+              >
+                Mulai Belajar
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Logout */}
         <button

@@ -1,9 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./useAuth";
 import { getUserProfile, getUserProgress, getUserBadges } from "@/lib/firestore";
 import type { UserProfile, UserProgress, UserBadge } from "@/types";
+
+function isOfflineError(error: unknown) {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  if (!(error instanceof Error)) return false;
+
+  const maybeError = error as Error & { code?: string };
+  return maybeError.code === "unavailable" || maybeError.message.toLowerCase().includes("offline");
+}
 
 export function useUserData() {
   const { user } = useAuth();
@@ -11,9 +19,13 @@ export function useUserData() {
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(false);
+  const [isOffline, setIsOffline] = useState(() =>
+    typeof navigator !== "undefined" ? !navigator.onLine : false
+  );
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+
     if (!user) {
       setProfile(null);
       setProgress([]);
@@ -32,26 +44,25 @@ export function useUserData() {
       setProgress(progressData);
       setUserBadges(badgesData);
       setIsOffline(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Gagal memuat data pengguna:", error);
-      // Deteksi jika perangkat sedang offline atau koneksi Firebase terputus
-      if (!navigator.onLine || error.code === "unavailable" || error.message?.includes("offline")) {
+      if (isOfflineError(error)) {
         setIsOffline(true);
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
-    fetchData();
-  }, [user]);
+    void Promise.resolve().then(fetchData);
+  }, [fetchData]);
 
   // Pantau konektivitas browser secara realtime
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false);
-      fetchData();
+      void fetchData();
     };
     const handleOffline = () => {
       setIsOffline(true);
@@ -60,15 +71,11 @@ export function useUserData() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    if (!navigator.onLine) {
-      setIsOffline(true);
-    }
-
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [fetchData]);
 
   return { profile, progress, userBadges, loading, isOffline, refetch: fetchData };
 }

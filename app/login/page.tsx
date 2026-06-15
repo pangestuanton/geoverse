@@ -11,6 +11,10 @@ import toast from "react-hot-toast";
 
 type Mode = "login" | "register";
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -57,9 +61,10 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       // Redirect handled by OAuth callback
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error("Gagal masuk dengan Google. Coba ulangi beberapa saat lagi.");
+    } finally {
       setGoogleLoading(false);
     }
   };
@@ -69,8 +74,8 @@ export default function LoginPage() {
     try {
       await signInWithEmailPassword(data.email, data.password);
       // onAuthChange akan memicu redirect melalui useEffect
-    } catch (error: any) {
-      setServerError(error.message || "Gagal masuk. Coba lagi.");
+    } catch (error: unknown) {
+      setServerError(getErrorMessage(error, "Gagal masuk. Coba lagi."));
     }
   };
 
@@ -79,8 +84,8 @@ export default function LoginPage() {
     try {
       await registerWithEmailPassword(data.email, data.password);
       setRegisterSuccess(true);
-    } catch (error: any) {
-      setServerError(error.message || "Gagal mendaftar. Coba lagi.");
+    } catch (error: unknown) {
+      setServerError(getErrorMessage(error, "Gagal mendaftar. Coba lagi."));
     }
   };
 

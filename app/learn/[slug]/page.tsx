@@ -10,7 +10,6 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ModuleContent from "@/components/learn/ModuleContent";
 import QuizCard from "@/components/learn/QuizCard";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
 import { useUserData } from "@/hooks/useUserData";
 import { getModuleBySlug } from "@/lib/modules";
 import { badges } from "@/data/badges";
@@ -32,7 +31,6 @@ export default function ModuleDetailPage() {
 function ModuleDetailContent() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const { progress, userBadges, refetch } = useUserData();
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -60,7 +58,7 @@ function ModuleDetailContent() {
           <h2 className="text-xl font-semibold text-slate-800 mb-2">Modul tidak ditemukan</h2>
           <p className="text-slate-500 mb-4">Modul yang kamu cari tidak tersedia atau sedang dalam perbaikan.</p>
           <Link href="/learn" className="text-emerald-600 hover:text-emerald-700 font-medium">
-            ← Kembali ke daftar modul
+            {"<-"} Kembali ke daftar modul
           </Link>
         </div>
       </Sidebar>
@@ -129,14 +127,10 @@ function ModuleDetailContent() {
       toast.success(`Modul selesai! +${points} poin diperoleh.`);
       refetch();
       router.refresh();
-    } catch (error: any) {
-      console.warn("Gagal menyimpan progres modul:", {
-        message: error?.message || error,
-        details: error?.details || "",
-        hint: error?.hint || "",
-        code: error?.code || "",
-      });
-      toast.error(error?.message || "Gagal menyimpan progres. Coba lagi.");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Gagal menyimpan progres. Coba lagi.";
+      console.warn("Gagal menyimpan progres modul:", { message });
+      toast.error(message);
     } finally {
       setSaving(false);
     }

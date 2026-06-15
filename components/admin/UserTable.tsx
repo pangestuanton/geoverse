@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import type { UserProfile } from "@/types";
 import { adminUpdateUserProfile } from "@/lib/firestore";
 import toast from "react-hot-toast";
@@ -74,7 +75,14 @@ export default function UserTable({ users, searchQuery, onUpdate }: UserTablePro
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {user.photoURL ? (
-                        <img src={user.photoURL} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                        <Image
+                          src={user.photoURL}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
                           {user.name.charAt(0)}

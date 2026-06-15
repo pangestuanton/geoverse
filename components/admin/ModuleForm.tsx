@@ -2,18 +2,18 @@
 import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2, Loader2, X } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { moduleSchema, type ModuleFormData } from "@/lib/validations";
 import type { ModuleDB } from "@/types";
-
-// Type helper for nested array fields
-type ContentField = { id: string };
-type KeyPointField = { id: string };
 
 interface ModuleFormProps {
   initial?: ModuleDB;
   onSubmit: (data: ModuleFormData) => Promise<void>;
   onCancel: () => void;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default function ModuleForm({ initial, onSubmit, onCancel }: ModuleFormProps) {
@@ -24,7 +24,6 @@ export default function ModuleForm({ initial, onSubmit, onCancel }: ModuleFormPr
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<ModuleFormData>({
     resolver: zodResolver(moduleSchema),
     defaultValues: {
@@ -54,8 +53,8 @@ export default function ModuleForm({ initial, onSubmit, onCancel }: ModuleFormPr
     setServerError(null);
     try {
       await onSubmit(data);
-    } catch (err: any) {
-      setServerError(err.message || "Gagal menyimpan modul.");
+    } catch (err: unknown) {
+      setServerError(getErrorMessage(err, "Gagal menyimpan modul."));
     }
   };
 

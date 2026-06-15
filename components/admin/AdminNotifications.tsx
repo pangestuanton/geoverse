@@ -1,8 +1,8 @@
 "use client";
 import { useAdminNotifications, type AdminNotification } from "@/hooks/useAdminNotifications";
-import { User, Leaf, BookOpen, Award, Check, CheckSquare, Bell, Clock, Eye, AlertTriangle } from "lucide-react";
+import { User, Leaf, BookOpen, Award, Check, CheckSquare, Bell, Clock, AlertTriangle, type LucideIcon } from "lucide-react";
 
-const typeStyles: Record<string, { icon: any; color: string; bg: string; border: string }> = {
+const typeStyles: Record<AdminNotification["type"], { icon: LucideIcon; color: string; bg: string; border: string }> = {
   new_user: {
     icon: User,
     color: "text-blue-600",
@@ -27,12 +27,18 @@ const typeStyles: Record<string, { icon: any; color: string; bg: string; border:
     bg: "bg-amber-50",
     border: "border-amber-100",
   },
+  new_challenge: {
+    icon: Award,
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    border: "border-orange-100",
+  },
 };
 
 export default function AdminNotifications() {
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead } = useAdminNotifications();
 
-  const formatTime = (date: any) => {
+  const formatTime = (date: AdminNotification["createdAt"]) => {
     if (!date) return "";
     const d = new Date(date);
     return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " - " + d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });

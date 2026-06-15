@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Loader2, Save, ToggleLeft, ToggleRight, Megaphone, BookOpen, Users, Trophy } from "lucide-react";
+import { Loader2, Save, ToggleLeft, ToggleRight, Megaphone, BookOpen, Users, Trophy, type LucideIcon } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -14,7 +14,11 @@ interface ConfigRow {
   isActive: boolean;
 }
 
-const CONFIG_LABELS: Record<string, { label: string; description: string; icon: React.ComponentType<any> }> = {
+type AnnouncementType = "info" | "success" | "warning" | "danger";
+
+const ANNOUNCEMENT_TYPES: AnnouncementType[] = ["info", "success", "warning", "danger"];
+
+const CONFIG_LABELS: Record<string, { label: string; description: string; icon: LucideIcon }> = {
   show_challenges: {
     label: "Tampilkan Seksi Tantangan",
     description: "Tampilkan atau sembunyikan bagian Tantangan di dashboard user.",
@@ -37,9 +41,20 @@ const CONFIG_LABELS: Record<string, { label: string; description: string; icon: 
   },
 };
 
+function getBooleanValue(value: Record<string, unknown>, fallback: boolean) {
+  return typeof value.enabled === "boolean" ? value.enabled : fallback;
+}
+
+function getStringValue(value: Record<string, unknown>, key: string) {
+  return typeof value[key] === "string" ? value[key] : "";
+}
+
+function getAnnouncementType(value: unknown): AnnouncementType {
+  return ANNOUNCEMENT_TYPES.includes(value as AnnouncementType) ? (value as AnnouncementType) : "info";
+}
+
 export default function AdminDashboardConfigPage() {
   const { loading: authLoading, isAdmin } = useAdminGuard();
-  const [configs, setConfigs] = useState<ConfigRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
@@ -48,26 +63,29 @@ export default function AdminDashboardConfigPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [featuredSlug, setFeaturedSlug] = useState("");
   const [featuredActive, setFeaturedActive] = useState(false);
-  const [announcement, setAnnouncement] = useState({ title: "", body: "", type: "info" as const });
+  const [announcement, setAnnouncement] = useState<{ title: string; body: string; type: AnnouncementType }>({
+    title: "",
+    body: "",
+    type: "info",
+  });
   const [announcementActive, setAnnouncementActive] = useState(false);
 
   useEffect(() => {
     if (!authLoading && isAdmin) {
       getAllDashboardConfigsAdmin()
-        .then((data) => {
-          setConfigs(data);
+        .then((data: ConfigRow[]) => {
           for (const row of data) {
-            if (row.key === "show_challenges") setShowChallenges((row.value as any)?.enabled ?? true);
-            if (row.key === "show_leaderboard") setShowLeaderboard((row.value as any)?.enabled ?? true);
+            if (row.key === "show_challenges") setShowChallenges(getBooleanValue(row.value, true));
+            if (row.key === "show_leaderboard") setShowLeaderboard(getBooleanValue(row.value, true));
             if (row.key === "featured_module_slug") {
-              setFeaturedSlug((row.value as any)?.slug ?? "");
+              setFeaturedSlug(getStringValue(row.value, "slug"));
               setFeaturedActive(row.isActive);
             }
             if (row.key === "announcement") {
               setAnnouncement({
-                title: (row.value as any)?.title || "",
-                body: (row.value as any)?.body || "",
-                type: (row.value as any)?.type || "info",
+                title: getStringValue(row.value, "title"),
+                body: getStringValue(row.value, "body"),
+                type: getAnnouncementType(row.value.type),
               });
               setAnnouncementActive(row.isActive);
             }
@@ -229,7 +247,7 @@ export default function AdminDashboardConfigPage() {
               <label className="block text-xs font-medium text-slate-600 mb-1">Tipe</label>
               <select
                 value={announcement.type}
-                onChange={(e) => setAnnouncement((prev) => ({ ...prev, type: e.target.value as any }))}
+                onChange={(e) => setAnnouncement((prev) => ({ ...prev, type: getAnnouncementType(e.target.value) }))}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
               >
                 <option value="info">Info (Biru)</option>
@@ -270,7 +288,7 @@ function ConfigCard({
 }: {
   label: string;
   description: string;
-  Icon: React.ComponentType<any>;
+  Icon: LucideIcon;
   children: React.ReactNode;
 }) {
   return (

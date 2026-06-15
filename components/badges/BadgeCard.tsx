@@ -25,21 +25,22 @@ export default function BadgeCard({ badge, isUnlocked }: BadgeCardProps) {
         </div>
       )}
 
-      <div className={`text-5xl mb-4 ${!isUnlocked ? "grayscale" : ""}`}>
-        {badge.icon}
-      </div>
+      <div className={`text-5xl mb-4 ${!isUnlocked ? "grayscale" : ""}`}>{badge.icon}</div>
 
-      <h3 className={`font-semibold mb-2 ${isUnlocked ? "text-slate-800" : "text-slate-500"}`} style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <h3
+        className={`font-semibold mb-2 ${isUnlocked ? "text-slate-800" : "text-slate-500"}`}
+        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      >
         {badge.name}
       </h3>
 
-      <p className={`text-sm mb-3 ${isUnlocked ? "text-slate-500" : "text-slate-400"}`}>
-        {badge.description}
-      </p>
+      <p className={`text-sm mb-3 ${isUnlocked ? "text-slate-500" : "text-slate-400"}`}>{badge.description}</p>
 
-      <div className={`text-xs font-medium px-3 py-1.5 rounded-full inline-block ${
-        isUnlocked ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-      }`}>
+      <div
+        className={`text-xs font-medium px-3 py-1.5 rounded-full inline-block ${
+          isUnlocked ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+        }`}
+      >
         {isUnlocked ? "✅ Terbuka" : `🔒 ${badge.requirement}`}
       </div>
     </motion.div>

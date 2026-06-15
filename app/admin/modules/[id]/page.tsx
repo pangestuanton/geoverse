@@ -81,7 +81,7 @@ export default function AdminModuleDetailPage() {
       <div className="text-center py-20">
         <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
         <p className="text-slate-600">Modul tidak ditemukan.</p>
-        <Link href="/admin/modules" className="text-emerald-600 hover:underline text-sm mt-2 inline-block">← Kembali</Link>
+        <Link href="/admin/modules" className="text-emerald-600 hover:underline text-sm mt-2 inline-block">{"<-"} Kembali</Link>
       </div>
     </AdminSidebar>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import Image from "next/image";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Gift, Loader2, X, Award } from "lucide-react";
 import { badgeSchema, awardBadgeSchema, type BadgeFormData, type AwardBadgeFormData } from "@/lib/validations";
@@ -18,6 +19,10 @@ interface BadgeManagerProps {
   initialBadges: BadgeDB[];
   users: UserProfile[];
   adminUid: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default function BadgeManager({ initialBadges, users, adminUid }: BadgeManagerProps) {
@@ -159,9 +164,9 @@ export default function BadgeManager({ initialBadges, users, adminUid }: BadgeMa
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl overflow-hidden">
                     {badge.icon.startsWith("http") ? (
-                      <img src={badge.icon} alt={badge.name} className="w-8 h-8 object-contain" />
+                      <Image src={badge.icon} alt={badge.name} width={32} height={32} className="w-8 h-8 object-contain" />
                     ) : (
                       badge.icon
                     )}
@@ -198,7 +203,7 @@ export default function BadgeManager({ initialBadges, users, adminUid }: BadgeMa
               <p className="text-xs text-slate-500 mt-2 leading-relaxed">{badge.description}</p>
               {!badge.isActive && (
                 <div className="mt-2 text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
-                  ⚫ Nonaktif — tidak tampil ke user
+                  ● Nonaktif - tidak tampil ke user
                 </div>
               )}
             </div>
@@ -224,7 +229,7 @@ function BadgeForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<BadgeFormData>({
     resolver: zodResolver(badgeSchema),
@@ -237,14 +242,14 @@ function BadgeForm({
     },
   });
 
-  const iconValue = watch("icon");
+  const iconValue = useWatch({ control, name: "icon" });
 
   const handleFormSubmit = async (data: BadgeFormData) => {
     setServerError(null);
     try {
       await onSubmit(data);
-    } catch (err: any) {
-      setServerError(err.message || "Gagal menyimpan badge.");
+    } catch (err: unknown) {
+      setServerError(getErrorMessage(err, "Gagal menyimpan badge."));
     }
   };
 
@@ -285,7 +290,16 @@ function BadgeForm({
             />
             <div className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-xl bg-slate-50">
               {iconValue?.startsWith("http") ? (
-                <img src={iconValue} alt="" className="w-7 h-7 object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                <Image
+                  src={iconValue}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
               ) : iconValue || "🏅"}
             </div>
           </div>
@@ -361,8 +375,8 @@ function AwardBadgeForm({
       toast.success("Badge berhasil diberikan ke pengguna!");
       reset();
       onSuccess();
-    } catch (err: any) {
-      setServerError(err.message || "Gagal memberikan badge.");
+    } catch (err: unknown) {
+      setServerError(getErrorMessage(err, "Gagal memberikan badge."));
     }
   };
 
@@ -386,7 +400,7 @@ function AwardBadgeForm({
               .filter((u) => u.role !== "admin")
               .map((u) => (
                 <option key={u.uid} value={u.uid}>
-                  {u.displayName || u.name} — {u.email}
+                  {u.displayName || u.name} - {u.email}
                 </option>
               ))}
           </select>

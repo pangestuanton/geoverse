@@ -11,7 +11,7 @@ export interface AdminNotification {
   sourceCollection?: string;
   sourceId?: string;
   isRead: boolean;
-  createdAt: any;
+  createdAt: Date | string | number;
 }
 
 export function useAdminNotifications() {
@@ -20,7 +20,9 @@ export function useAdminNotifications() {
     unreadCount: 0,
     loading: false,
     error: null,
-    markAsRead: async (id: string) => {},
+    markAsRead: async (id: string) => {
+      void id;
+    },
     markAllAsRead: async () => {},
   };
 }

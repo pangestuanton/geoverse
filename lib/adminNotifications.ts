@@ -11,5 +11,6 @@ export interface CreateAdminNotificationParams {
 
 export async function createAdminNotification(params: CreateAdminNotificationParams) {
   // Fitur Dinonaktifkan: No-op
+  void params;
   return;
 }

@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Leaf, Loader2, User, CheckCircle, AlertCircle } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -21,13 +22,13 @@ export default function SetupProfilePage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
+    control,
   } = useForm<SetupProfileFormData>({
     resolver: zodResolver(setupProfileSchema),
     defaultValues: { displayName: "" },
   });
 
-  const displayNameValue = watch("displayName");
+  const displayNameValue = useWatch({ control, name: "displayName" });
 
   useEffect(() => {
     // Jika user belum login → ke login
@@ -109,10 +110,12 @@ export default function SetupProfilePage() {
 
           {/* Avatar */}
           {user.photoURL ? (
-            <img
+            <Image
               src={user.photoURL}
               alt=""
-              className="w-16 h-16 rounded-full mx-auto mb-4 border-4 border-emerald-200"
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-full mx-auto mb-4 border-4 border-emerald-200 object-cover"
               referrerPolicy="no-referrer"
             />
           ) : (
@@ -165,7 +168,7 @@ export default function SetupProfilePage() {
                     {errors.displayName ? (
                       <span className="text-red-500">{errors.displayName.message}</span>
                     ) : (
-                      "3–30 karakter, aman dari script berbahaya"
+                      "3-30 karakter, aman dari script berbahaya"
                     )}
                   </span>
                   <span className={`text-xs ${(displayNameValue?.length ?? 0) > 28 ? "text-amber-500" : "text-slate-400"}`}>

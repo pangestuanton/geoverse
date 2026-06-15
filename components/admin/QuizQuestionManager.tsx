@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, Loader2, Edit2, CheckCircle, AlertCircle, X } from "lucide-react";
 import { quizQuestionSchema, type QuizQuestionFormData } from "@/lib/validations";
@@ -15,6 +15,10 @@ import toast from "react-hot-toast";
 interface QuizQuestionManagerProps {
   moduleId: string;
   initialQuestions: QuizQuestionDB[];
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 export default function QuizQuestionManager({ moduleId, initialQuestions }: QuizQuestionManagerProps) {
@@ -204,7 +208,6 @@ function QuizQuestionForm({
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<QuizQuestionFormData>({
     resolver: zodResolver(quizQuestionSchema),
@@ -219,14 +222,14 @@ function QuizQuestionForm({
 
   // @ts-expect-error - useFieldArray string array limitation
   const optionsArr = useFieldArray({ control, name: "options" });
-  const watchOptions = watch("options");
+  const watchOptions = useWatch({ control, name: "options" });
 
   const handleFormSubmit = async (data: QuizQuestionFormData) => {
     setServerError(null);
     try {
       await onSubmit(data);
-    } catch (err: any) {
-      setServerError(err.message || "Gagal menyimpan soal.");
+    } catch (err: unknown) {
+      setServerError(getErrorMessage(err, "Gagal menyimpan soal."));
     }
   };
 
