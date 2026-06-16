@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
-import { useAuth } from "@/hooks/useAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import BadgeManager from "@/components/admin/BadgeManager";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -11,7 +10,6 @@ import type { BadgeDB, UserProfile } from "@/types";
 
 export default function AdminBadgesPage() {
   const { loading: authLoading, isAdmin } = useAdminGuard();
-  const { user } = useAuth();
   const [badges, setBadges] = useState<BadgeDB[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +44,6 @@ export default function AdminBadgesPage() {
         <BadgeManager
           initialBadges={badges}
           users={users}
-          adminUid={user?.uid || ""}
         />
       </div>
     </AdminSidebar>

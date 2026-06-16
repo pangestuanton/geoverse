@@ -1,10 +1,24 @@
 -- ============================================================
--- GeoVerse SQL Migration
+-- GeoVerse SQL Migration (Self-contained and complete)
 -- Jalankan di Supabase Dashboard → SQL Editor
 -- ============================================================
 
--- 1. ALTER TABLE users: tambah role, display_name, profile_setup_done
+-- 1. CREATE TABLE users
 -- ============================================================
+CREATE TABLE IF NOT EXISTS public.users (
+  uid TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  name TEXT NOT NULL,
+  display_name TEXT,
+  photo_url TEXT,
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  total_points INTEGER NOT NULL DEFAULT 0,
+  profile_setup_done BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ALTER TABLE users: pastikan kolom-kolom baru ada untuk database yang sudah ada
 ALTER TABLE public.users
   ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'
     CHECK (role IN ('user', 'admin')),
@@ -21,12 +35,35 @@ WHERE email = ANY(
   )
 );
 
--- 2. ALTER TABLE green_logs: tambah rejection_reason, reviewed_by, reviewed_at
+
+-- 2. CREATE TABLE green_logs
 -- ============================================================
+CREATE TABLE IF NOT EXISTS public.green_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES public.users(uid) ON DELETE CASCADE,
+  user_name TEXT NOT NULL,
+  user_email TEXT NOT NULL,
+  action_date TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  waste_category TEXT NOT NULL,
+  estimated_kg NUMERIC NOT NULL,
+  location TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  points INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  rejection_reason TEXT,
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ALTER TABLE green_logs: pastikan kolom review ada
 ALTER TABLE public.green_logs
   ADD COLUMN IF NOT EXISTS rejection_reason TEXT,
   ADD COLUMN IF NOT EXISTS reviewed_by TEXT,
   ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+
 
 -- 3. CREATE TABLE modules
 -- ============================================================
@@ -50,6 +87,7 @@ CREATE TABLE IF NOT EXISTS public.modules (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
 -- 4. CREATE TABLE quiz_questions
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.quiz_questions (
@@ -67,6 +105,7 @@ CREATE TABLE IF NOT EXISTS public.quiz_questions (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
 -- 5. CREATE TABLE badges
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.badges (
@@ -81,8 +120,21 @@ CREATE TABLE IF NOT EXISTS public.badges (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 6. ALTER TABLE user_badges: tambah awarded_by, awarded_note
+
+-- 6. CREATE TABLE user_badges
 -- ============================================================
+CREATE TABLE IF NOT EXISTS public.user_badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES public.users(uid) ON DELETE CASCADE,
+  badge_id UUID NOT NULL REFERENCES public.badges(id) ON DELETE CASCADE,
+  unlocked BOOLEAN NOT NULL DEFAULT true,
+  unlocked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  awarded_by TEXT,
+  awarded_note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ALTER TABLE user_badges: pastikan kolom baru ada
 ALTER TABLE public.user_badges
   ADD COLUMN IF NOT EXISTS awarded_by TEXT,
   ADD COLUMN IF NOT EXISTS awarded_note TEXT;
@@ -91,7 +143,23 @@ ALTER TABLE public.user_badges
 CREATE UNIQUE INDEX IF NOT EXISTS user_badges_unique_idx
   ON public.user_badges(user_id, badge_id);
 
--- 7. CREATE TABLE dashboard_config
+
+-- 7. CREATE TABLE user_progress
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.user_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES public.users(uid) ON DELETE CASCADE,
+  module_id UUID NOT NULL REFERENCES public.modules(id) ON DELETE CASCADE,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  score INTEGER NOT NULL DEFAULT 0,
+  completed_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT user_progress_unique_idx UNIQUE (user_id, module_id)
+);
+
+
+-- 8. CREATE TABLE dashboard_config
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.dashboard_config (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -110,8 +178,8 @@ VALUES
   ('show_leaderboard', '{"enabled": true}', true)
 ON CONFLICT (key) DO NOTHING;
 
--- 8. Seed badge default dari data static
--- (Jalankan ini hanya sekali, setelah modul pertama kali migrasi)
+
+-- 9. Seed badge default dari data static
 -- ============================================================
 INSERT INTO public.badges (slug, name, description, icon, category, is_active)
 VALUES
@@ -122,13 +190,18 @@ VALUES
   ('penggerak-komunitas', 'Penggerak Komunitas', 'Kamu sudah menyelesaikan tantangan komunitas.', '🤝', 'tantangan', true)
 ON CONFLICT (slug) DO NOTHING;
 
--- 9. RLS Policies
+
+-- 10. Row Level Security (RLS) Policies
 -- ============================================================
 
 -- users
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "users_select_own" ON public.users;
 DROP POLICY IF EXISTS "users_update_own" ON public.users;
+DROP POLICY IF EXISTS "users_insert_own" ON public.users;
+DROP POLICY IF EXISTS "users_admin_select" ON public.users;
+DROP POLICY IF EXISTS "users_admin_update" ON public.users;
+
 CREATE POLICY "users_select_own" ON public.users
   FOR SELECT USING (uid::text = auth.uid()::text);
 CREATE POLICY "users_update_own" ON public.users
@@ -136,47 +209,119 @@ CREATE POLICY "users_update_own" ON public.users
 CREATE POLICY "users_insert_own" ON public.users
   FOR INSERT WITH CHECK (uid::text = auth.uid()::text);
 
--- green_logs: user hanya bisa baca miliknya sendiri
+-- users admin policies
+CREATE POLICY "users_admin_select" ON public.users
+  FOR SELECT USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
+CREATE POLICY "users_admin_update" ON public.users
+  FOR UPDATE USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
+
+
+-- green_logs: user hanya bisa baca miliknya sendiri, admin bisa semua
 ALTER TABLE public.green_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "greenlogs_user_select" ON public.green_logs;
 DROP POLICY IF EXISTS "greenlogs_user_insert" ON public.green_logs;
+DROP POLICY IF EXISTS "greenlogs_admin_select" ON public.green_logs;
+DROP POLICY IF EXISTS "greenlogs_admin_update" ON public.green_logs;
+
 CREATE POLICY "greenlogs_user_select" ON public.green_logs
   FOR SELECT USING (user_id::text = auth.uid()::text);
 CREATE POLICY "greenlogs_user_insert" ON public.green_logs
   FOR INSERT WITH CHECK (user_id::text = auth.uid()::text);
 
--- modules: semua user bisa baca yang published
+-- green_logs admin policies
+CREATE POLICY "greenlogs_admin_select" ON public.green_logs
+  FOR SELECT USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
+CREATE POLICY "greenlogs_admin_update" ON public.green_logs
+  FOR UPDATE USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
+
+
+-- modules: semua user bisa baca yang published, admin bisa semua
 ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "modules_select_published" ON public.modules;
+DROP POLICY IF EXISTS "modules_admin_all" ON public.modules;
+
 CREATE POLICY "modules_select_published" ON public.modules
   FOR SELECT USING (status = 'published');
+CREATE POLICY "modules_admin_all" ON public.modules
+  FOR ALL USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
 
--- quiz_questions: semua user bisa baca yang aktif
+
+-- quiz_questions: semua user bisa baca yang aktif, admin bisa semua
 ALTER TABLE public.quiz_questions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "quiz_select_active" ON public.quiz_questions;
+DROP POLICY IF EXISTS "quiz_admin_all" ON public.quiz_questions;
+
 CREATE POLICY "quiz_select_active" ON public.quiz_questions
   FOR SELECT USING (is_deleted = false);
+CREATE POLICY "quiz_admin_all" ON public.quiz_questions
+  FOR ALL USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
 
--- badges: semua user bisa baca yang aktif
+
+-- badges: semua user bisa baca yang aktif, admin bisa semua
 ALTER TABLE public.badges ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "badges_select_active" ON public.badges;
+DROP POLICY IF EXISTS "badges_admin_all" ON public.badges;
+
 CREATE POLICY "badges_select_active" ON public.badges
   FOR SELECT USING (is_active = true);
+CREATE POLICY "badges_admin_all" ON public.badges
+  FOR ALL USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
 
--- user_badges: user hanya bisa baca miliknya
+
+-- user_badges: user hanya bisa baca miliknya, admin bisa semua
 ALTER TABLE public.user_badges ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "user_badges_select" ON public.user_badges;
+DROP POLICY IF EXISTS "user_badges_admin_select" ON public.user_badges;
+
 CREATE POLICY "user_badges_select" ON public.user_badges
   FOR SELECT USING (user_id::text = auth.uid()::text);
+CREATE POLICY "user_badges_admin_select" ON public.user_badges
+  FOR SELECT USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
 
--- dashboard_config: semua user bisa baca yang aktif
+
+-- user_progress: user hanya bisa akses miliknya sendiri, admin bisa select semua
+ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_progress_select_own" ON public.user_progress;
+DROP POLICY IF EXISTS "user_progress_insert_own" ON public.user_progress;
+DROP POLICY IF EXISTS "user_progress_update_own" ON public.user_progress;
+DROP POLICY IF EXISTS "user_progress_admin_select" ON public.user_progress;
+
+CREATE POLICY "user_progress_select_own" ON public.user_progress
+  FOR SELECT USING (user_id::text = auth.uid()::text);
+CREATE POLICY "user_progress_insert_own" ON public.user_progress
+  FOR INSERT WITH CHECK (user_id::text = auth.uid()::text);
+CREATE POLICY "user_progress_update_own" ON public.user_progress
+  FOR UPDATE USING (user_id::text = auth.uid()::text);
+CREATE POLICY "user_progress_admin_select" ON public.user_progress
+  FOR SELECT USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );
+
+
+-- dashboard_config: semua user bisa baca yang aktif, admin bisa semua
 ALTER TABLE public.dashboard_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "dashboard_config_select" ON public.dashboard_config;
+DROP POLICY IF EXISTS "dashboard_config_admin_all" ON public.dashboard_config;
+
 CREATE POLICY "dashboard_config_select" ON public.dashboard_config
   FOR SELECT USING (is_active = true);
-
--- ============================================================
--- CATATAN:
--- Operasi admin (INSERT/UPDATE/DELETE di tabel yang di-RLS)
--- harus menggunakan SUPABASE_SERVICE_ROLE_KEY (bypass RLS)
--- ============================================================
+CREATE POLICY "dashboard_config_admin_all" ON public.dashboard_config
+  FOR ALL USING (
+    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+  );

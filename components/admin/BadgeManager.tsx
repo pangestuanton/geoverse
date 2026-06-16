@@ -9,7 +9,6 @@ import {
   createBadge,
   updateBadge,
   toggleBadgeActive,
-  awardBadgeToUser,
 } from "@/lib/badges";
 import type { BadgeDB } from "@/types";
 import type { UserProfile } from "@/types";
@@ -18,14 +17,13 @@ import toast from "react-hot-toast";
 interface BadgeManagerProps {
   initialBadges: BadgeDB[];
   users: UserProfile[];
-  adminUid: string;
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-export default function BadgeManager({ initialBadges, users, adminUid }: BadgeManagerProps) {
+export default function BadgeManager({ initialBadges, users }: BadgeManagerProps) {
   const [badges, setBadges] = useState<BadgeDB[]>(initialBadges);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingBadge, setEditingBadge] = useState<BadgeDB | null>(null);
@@ -111,7 +109,6 @@ export default function BadgeManager({ initialBadges, users, adminUid }: BadgeMa
           <AwardBadgeForm
             badges={badges.filter((b) => b.isActive)}
             users={users}
-            adminUid={adminUid}
             onSuccess={() => setShowAwardPanel(false)}
           />
         </div>
@@ -348,12 +345,10 @@ function BadgeForm({
 function AwardBadgeForm({
   badges,
   users,
-  adminUid,
   onSuccess,
 }: {
   badges: BadgeDB[];
   users: UserProfile[];
-  adminUid: string;
   onSuccess: () => void;
 }) {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -371,7 +366,19 @@ function AwardBadgeForm({
   const handleFormSubmit = async (data: AwardBadgeFormData) => {
     setServerError(null);
     try {
-      await awardBadgeToUser(data.badgeId, data.userId, adminUid, data.note);
+      const response = await fetch("/api/admin/badges/award", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error || "Gagal memberikan badge.");
+      }
+
       toast.success("Badge berhasil diberikan ke pengguna!");
       reset();
       onSuccess();
