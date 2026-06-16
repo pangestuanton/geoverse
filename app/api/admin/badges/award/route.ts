@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
-import { createClient } from "@/utils/supabase/server";
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
-import { isAdminEmail } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/adminRoute";
 
 const awardSchema = z.object({
   badgeId: z.string().uuid("Badge tidak valid."),
@@ -11,37 +9,8 @@ const awardSchema = z.object({
   note: z.string().max(200, "Catatan maksimal 200 karakter.").optional(),
 });
 
-async function requireAdmin() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { error: NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("role")
-    .eq("uid", user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    return { error: NextResponse.json({ error: "Gagal memverifikasi akses admin." }, { status: 500 }) };
-  }
-
-  if (profile?.role !== "admin" && !isAdminEmail(user.email ?? null)) {
-    return { error: NextResponse.json({ error: "Akses admin diperlukan." }, { status: 403 }) };
-  }
-
-  return { user };
-}
-
 export async function POST(request: Request) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminUser();
   if ("error" in admin) return admin.error;
 
   const parsed = awardSchema.safeParse(await request.json().catch(() => null));

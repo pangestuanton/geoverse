@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
-import { createClient } from "@/utils/supabase/server";
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
-import { isAdminEmail } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/adminRoute";
 import { badgeSchema } from "@/lib/validations";
 import { mapBadgeFromDb } from "@/lib/badges";
 
@@ -20,37 +18,8 @@ const patchSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
-async function requireAdmin() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return { error: NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("role")
-    .eq("uid", user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    return { error: NextResponse.json({ error: "Gagal memverifikasi akses admin." }, { status: 500 }) };
-  }
-
-  if (profile?.role !== "admin" && !isAdminEmail(user.email ?? null)) {
-    return { error: NextResponse.json({ error: "Akses admin diperlukan." }, { status: 403 }) };
-  }
-
-  return { user };
-}
-
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminUser();
   if ("error" in admin) return admin.error;
 
   try {
@@ -88,7 +57,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminUser();
   if ("error" in admin) return admin.error;
 
   const parsed = badgeSchema.safeParse(await request.json().catch(() => null));
@@ -125,7 +94,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminUser();
   if ("error" in admin) return admin.error;
 
   const parsed = patchSchema.safeParse(await request.json().catch(() => null));

@@ -6,6 +6,7 @@ import { getSupabaseConfig } from "@/utils/supabase/config";
 const PUBLIC_PREFIXES = ["/", "/login", "/auth"];
 const USER_PREFIXES = ["/dashboard", "/green-log", "/learn", "/profile", "/badges", "/challenges", "/setup-profile"];
 const ADMIN_PREFIXES = ["/admin"];
+const API_PREFIXES = ["/api"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
@@ -26,6 +27,12 @@ export async function proxy(request: NextRequest) {
   // Public routes (/, /login, /auth/*) — always allow
   if (matchesPrefix(pathname, PUBLIC_PREFIXES)) {
     return refreshSession(request);
+  }
+
+  // API routes — refresh session tapi jangan redirect (biarkan Route Handler tangani auth)
+  if (matchesPrefix(pathname, API_PREFIXES)) {
+    const { response } = await getSessionAndRefresh(request);
+    return response;
   }
 
   // Protected routes — require session

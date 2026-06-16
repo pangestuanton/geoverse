@@ -12,6 +12,7 @@ export async function requireAdminUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
+    console.error("[requireAdminUser] auth.getUser failed:", error?.message || "No user");
     return { error: NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 }) };
   }
 
@@ -22,10 +23,13 @@ export async function requireAdminUser() {
     .maybeSingle();
 
   if (profileError) {
+    console.error("[requireAdminUser] profile query failed:", profileError.message, "uid:", user.id);
     return { error: NextResponse.json({ error: "Gagal memverifikasi akses admin." }, { status: 500 }) };
   }
 
-  if (profile?.role !== "admin" && !isAdminEmail(user.email ?? null)) {
+  const emailIsAdmin = isAdminEmail(user.email ?? null);
+
+  if (profile?.role !== "admin" && !emailIsAdmin) {
     return { error: NextResponse.json({ error: "Akses admin diperlukan." }, { status: 403 }) };
   }
 

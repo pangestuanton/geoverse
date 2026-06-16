@@ -211,6 +211,15 @@ WHERE slug IN (
 -- 10. Row Level Security (RLS) Policies
 -- ============================================================
 
+-- Helper function to check if the current user is an admin without causing RLS recursion
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.users
+    WHERE uid::text = auth.uid()::text AND role = 'admin'
+  );
+$$ LANGUAGE sql SECURITY DEFINER;
+
 -- users
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "users_select_own" ON public.users;
@@ -226,15 +235,11 @@ CREATE POLICY "users_update_own" ON public.users
 CREATE POLICY "users_insert_own" ON public.users
   FOR INSERT WITH CHECK (uid::text = auth.uid()::text);
 
--- users admin policies
+-- users admin policies using helper function (avoids infinite recursion)
 CREATE POLICY "users_admin_select" ON public.users
-  FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR SELECT USING (public.is_admin());
 CREATE POLICY "users_admin_update" ON public.users
-  FOR UPDATE USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR UPDATE USING (public.is_admin());
 
 
 -- green_logs: user hanya bisa baca miliknya sendiri, admin bisa semua
@@ -251,13 +256,9 @@ CREATE POLICY "greenlogs_user_insert" ON public.green_logs
 
 -- green_logs admin policies
 CREATE POLICY "greenlogs_admin_select" ON public.green_logs
-  FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR SELECT USING (public.is_admin());
 CREATE POLICY "greenlogs_admin_update" ON public.green_logs
-  FOR UPDATE USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR UPDATE USING (public.is_admin());
 
 
 -- modules: semua user bisa baca yang published, admin bisa semua
@@ -268,9 +269,7 @@ DROP POLICY IF EXISTS "modules_admin_all" ON public.modules;
 CREATE POLICY "modules_select_published" ON public.modules
   FOR SELECT USING (status = 'published');
 CREATE POLICY "modules_admin_all" ON public.modules
-  FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR ALL USING (public.is_admin());
 
 
 -- quiz_questions: semua user bisa baca yang aktif, admin bisa semua
@@ -281,9 +280,7 @@ DROP POLICY IF EXISTS "quiz_admin_all" ON public.quiz_questions;
 CREATE POLICY "quiz_select_active" ON public.quiz_questions
   FOR SELECT USING (is_deleted = false);
 CREATE POLICY "quiz_admin_all" ON public.quiz_questions
-  FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR ALL USING (public.is_admin());
 
 
 -- badges: semua user bisa baca yang aktif, admin bisa semua
@@ -294,9 +291,7 @@ DROP POLICY IF EXISTS "badges_admin_all" ON public.badges;
 CREATE POLICY "badges_select_active" ON public.badges
   FOR SELECT USING (is_active = true);
 CREATE POLICY "badges_admin_all" ON public.badges
-  FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR ALL USING (public.is_admin());
 
 
 -- user_badges: user hanya bisa baca miliknya, admin bisa semua
@@ -307,9 +302,7 @@ DROP POLICY IF EXISTS "user_badges_admin_select" ON public.user_badges;
 CREATE POLICY "user_badges_select" ON public.user_badges
   FOR SELECT USING (user_id::text = auth.uid()::text);
 CREATE POLICY "user_badges_admin_select" ON public.user_badges
-  FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR SELECT USING (public.is_admin());
 
 
 -- user_progress: user hanya bisa akses miliknya sendiri, admin bisa select semua
@@ -326,9 +319,7 @@ CREATE POLICY "user_progress_insert_own" ON public.user_progress
 CREATE POLICY "user_progress_update_own" ON public.user_progress
   FOR UPDATE USING (user_id::text = auth.uid()::text);
 CREATE POLICY "user_progress_admin_select" ON public.user_progress
-  FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR SELECT USING (public.is_admin());
 
 
 -- dashboard_config: semua user bisa baca yang aktif, admin bisa semua
@@ -339,6 +330,5 @@ DROP POLICY IF EXISTS "dashboard_config_admin_all" ON public.dashboard_config;
 CREATE POLICY "dashboard_config_select" ON public.dashboard_config
   FOR SELECT USING (is_active = true);
 CREATE POLICY "dashboard_config_admin_all" ON public.dashboard_config
-  FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
-  );
+  FOR ALL USING (public.is_admin());
+
