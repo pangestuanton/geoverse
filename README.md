@@ -1,297 +1,201 @@
-# 🌍 GeoVerse — Platform Edukasi Lingkungan Digital
+# GeoVerse
 
-<div align="center">
+GeoVerse is a web-based environmental education platform built with Next.js, Supabase, and Firebase. It focuses on geothermal literacy, green habits, community action logging, gamified progress, and an AI assistant for environmental learning.
 
-### Edukasi Lingkungan Interaktif untuk Generasi Muda Ulubelu
+## Overview
 
-GeoVerse adalah platform edukasi lingkungan berbasis web yang dirancang untuk membantu generasi muda memahami energi panas bumi, membangun kebiasaan hijau, serta mencatat aksi lingkungan melalui sistem komunitas yang interaktif dan modern.
+GeoVerse is designed for young users in Ulubelu and similar communities to:
 
-<br/>
+- learn about geothermal energy and environmental topics
+- log daily green actions
+- join community challenges
+- earn points and badges
+- get guidance from an AI assistant
+- access a separate admin dashboard for moderation and content management
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![OpenRouter](https://img.shields.io/badge/OpenRouter-AI-black?style=for-the-badge)
+## Tech Stack
 
-</div>
-
----
-
-# 📖 Tentang Project
-
-GeoVerse merupakan platform edukasi digital yang menggabungkan pembelajaran lingkungan, gamifikasi, aksi komunitas, dan teknologi AI dalam satu ekosistem modern berbasis web.
-
-Platform ini dikembangkan untuk:
-- Mengenalkan energi panas bumi kepada masyarakat
-- Meningkatkan kesadaran lingkungan generasi muda
-- Membantu pengguna membangun kebiasaan hijau
-- Menghadirkan pengalaman belajar interaktif berbasis AI
-
-> ⚠️ **Catatan:**  
-> Repository ini merupakan private prototype GeoVerse dan belum ditujukan untuk penggunaan komersial maupun distribusi publik.
-
----
-
-# ✨ Fitur Utama
-
-## 📚 Belajar Geothermal
-Modul edukasi interaktif mengenai:
-- Energi panas bumi
-- Pemilahan sampah
-- Aksi iklim
-- Edukasi lingkungan dasar
-
----
-
-## ♻️ Green Log
-Sistem pencatatan aksi lingkungan harian:
-- Input aktivitas pilah sampah
-- Riwayat aksi pengguna
-- Validasi aktivitas
-- Sistem poin otomatis
-
----
-
-## 🏆 Tantangan Komunitas
-Fitur challenge berbasis komunitas:
-- Tantangan mingguan
-- Tantangan bulanan
-- Reward poin
-- Progress pengguna
-
----
-
-## 🎖️ Sistem Poin & Badge
-Gamifikasi interaktif:
-- Poin dari aksi lingkungan
-- Badge pencapaian
-- Reward aktivitas positif
-
----
-
-## 📊 Dashboard Pengguna
-Dashboard modern dan interaktif:
-- Statistik aktivitas
-- Grafik progres pengguna
-- Total poin
-- Rekomendasi pembelajaran
-
----
-
-## 🤖 GeoVerse AI Assistant
-Asisten AI interaktif yang terintegrasi langsung dalam platform GeoVerse.
-
-Fitur:
-- Tanya jawab edukasi lingkungan
-- Penjelasan energi panas bumi
-- Bantuan memahami modul belajar
-- Rekomendasi aksi hijau
-- Interaksi AI secara real-time
-
-### ⚡ AI Stack
-GeoVerse AI Assistant menggunakan:
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Supabase Auth and Database
+- Firebase Auth and Firestore
 - OpenRouter API
-- Model AI: Google Gemini 2.0 Flash
+- Google Gemini 2.5 Flash
+- Recharts
+- Framer Motion
+- React Hook Form
+- Zod
+- Lucide React
 
-AI dirancang untuk memberikan pengalaman belajar yang cepat, modern, dan lebih personal bagi pengguna.
+## Main Features
 
----
+### Learning
 
-## 🛠️ Admin Lite Dashboard
-Dashboard monitoring sederhana untuk admin:
-- Monitoring pengguna
-- Monitoring Green Log
-- Validasi aktivitas
-- Statistik platform
+- interactive learning modules
+- quizzes and learning content
+- modular content pages
 
----
+### Green Log
 
-## 🔐 Authentication
-Sistem autentikasi menggunakan Supabase Auth:
-- Login Google
-- Session management
-- Protected route
-- Role-based access sederhana
+- daily environmental action logging
+- log history and review flow
+- point rewards for approved actions
 
----
+### Challenges
 
-# 🧰 Tech Stack
+- community challenge pages
+- challenge progress tracking
+- reward and badge support
 
-| Technology | Description |
-|---|---|
-| Next.js App Router | React Framework |
-| TypeScript | Static Type Checking |
-| Tailwind CSS v4 | Utility-first CSS |
-| Supabase Auth | Authentication |
-| Supabase Database | Backend Database |
-| OpenRouter API | AI Gateway |
-| Google Gemini 2.0 Flash | AI Model |
-| React Hook Form | Form Management |
-| Zod | Schema Validation |
-| Recharts | Data Visualization |
-| Framer Motion | Animation Library |
-| Lucide React | Icon Library |
+### Badges and Points
 
----
+- automatic point accumulation
+- badge collection
+- admin-controlled badge activation and awarding
 
-# 🚀 Instalasi Project
+### Dashboard
 
-## 1. Clone Repository
+- user statistics
+- progress charts
+- recommended learning modules
+- recent green log activity
 
-```bash
-git clone <repository-url>
-cd geoverse
+### AI Assistant
+
+- environmental Q&A
+- geothermal explanations
+- learning support
+- action recommendations
+
+### Admin Area
+
+- user management
+- module management
+- green log moderation
+- challenge management
+- badge management
+- dashboard configuration
+
+## Project Structure
+
+```txt
+app/
+components/
+data/
+hooks/
+lib/
+public/
+supabase/
+types/
+utils/
 ```
 
----
+## Getting Started
 
-## 2. Install Dependencies
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
----
+### 2. Configure environment variables
 
-## 3. Setup Supabase
-
-1. Buka Supabase Dashboard
-2. Buat project baru
-3. Aktifkan Authentication
-4. Aktifkan Google Provider
-5. Salin Project URL dan Anon Key
-
----
-
-## 4. Setup OpenRouter
-
-1. Buka OpenRouter
-2. Buat API Key baru
-3. Gunakan model:
-   ```txt
-   google/gemini-2.5-flash
-   ```
-
----
-
-## 5. Setup Environment Variables
-
-Salin file `.env.example` menjadi `.env.local`
-
-```bash
-cp .env.example .env.local
-```
-
-Isi dengan konfigurasi berikut:
+Create `.env.local` and set the values used by the app:
 
 ```env
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # Admin
 NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
 
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+
 # OpenRouter
-OPENROUTER_API_KEY=your-openrouter-api-key
-OPENROUTER_MODEL=qwen/qwen3-37b-a22b
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_MODEL=google/gemini-2.5-flash
 ```
 
----
-
-## 6. Jalankan Development Server
+### 3. Run the app
 
 ```bash
 npm run dev
 ```
 
-Buka browser:
+Open:
 
 ```txt
 http://localhost:3000
 ```
 
----
+## Available Scripts
 
-# 📁 Struktur Folder
+- `npm run dev` - start the dev server
+- `npm run build` - build for production
+- `npm start` - run the production build
+- `npm run lint` - run ESLint
+- `npm run typecheck` - run TypeScript checks
+- `npm test` - placeholder script
 
-```txt
-geoverse/
-├── app/
-│   ├── dashboard/
-│   ├── learn/
-│   ├── green-log/
-│   ├── challenges/
-│   ├── assistant-ai/
-│   ├── profile/
-│   ├── admin/
-│   └── api/
-│
-├── components/
-├── hooks/
-├── lib/
-├── services/
-├── types/
-├── public/
-├── styles/
-└── utils/
-```
+## Routes
 
----
+Public and authenticated routes in the app include:
 
-# ⚡ Fokus Pengembangan
+- `/`
+- `/login`
+- `/auth/callback`
+- `/setup-profile`
+- `/dashboard`
+- `/learn`
+- `/learn/[slug]`
+- `/green-log`
+- `/challenges`
+- `/badges`
+- `/profile`
+- `/admin`
+- `/admin/users`
+- `/admin/green-logs`
+- `/admin/modules`
+- `/admin/modules/[id]`
+- `/admin/challenges`
+- `/admin/badges`
+- `/admin/dashboard-config`
 
-GeoVerse dikembangkan dengan fokus:
-- Lightweight performance
-- Mobile-first design
-- Responsive UI
-- Clean architecture
-- Reusable component
-- Fast loading
-- Modern UI/UX
-- AI-integrated experience
-- Scalability
+## Database
 
----
-
-# 📌 Catatan Admin Dashboard
-
-Admin dashboard hanya dapat diakses oleh email yang terdaftar pada:
-
-```env
-NEXT_PUBLIC_ADMIN_EMAILS
-```
-
-Fitur admin:
-- Monitoring pengguna
-- Monitoring Green Log
-- Validasi aktivitas pengguna
-- Statistik platform
-
----
-
-# 🔒 Status Project
+The project uses Supabase migrations stored in:
 
 ```txt
-Private Prototype
+supabase/migrations/
 ```
 
-Project masih dalam tahap pengembangan aktif dan belum dirilis untuk publik.
+The current schema includes support for:
 
----
+- users
+- modules
+- quiz questions
+- green logs
+- challenges
+- badges
+- user badges
+- dashboard configuration
 
-# 📄 Lisensi
+## Notes
 
-Private Prototype — Tidak untuk distribusi publik.
+- Admin access is controlled by the configured admin email list and backend role checks.
+- The app includes both Supabase and Firebase integration, so both sets of credentials may be required depending on which features you use.
+- The repository is a private prototype and is not intended for public distribution.
 
----
+## License
 
-<div align="center">
-
-### 🌱 Build for Better Environment
-
-GeoVerse © 2026
-
-</div>
-```
+Private prototype. Not for public distribution.
