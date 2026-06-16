@@ -117,9 +117,9 @@ export type BadgeFormData = z.infer<typeof badgeSchema>;
 
 // ===== Award Badge to User =====
 export const awardBadgeSchema = z.object({
-  userId: z.string().min(1, "Pilih pengguna terlebih dahulu."),
-  badgeId: z.string().min(1, "Pilih badge terlebih dahulu."),
-  note: z.string().max(200, "Catatan maksimal 200 karakter.").optional(),
+  userId: z.string().trim().min(1, "Pilih pengguna terlebih dahulu."),
+  badgeId: z.string().trim().uuid("Pilih badge yang valid."),
+  note: z.string().trim().max(200, "Catatan maksimal 200 karakter.").optional(),
 });
 
 export type AwardBadgeFormData = z.infer<typeof awardBadgeSchema>;

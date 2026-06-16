@@ -53,8 +53,23 @@ function mapProgressFromDb(data: any): UserProgress {
   };
 }
 
-function mapUserBadgeFromDb(data: any): UserBadge {
-  const badgeData = data.badges;
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function buildBadgeLookupFromDb(badges: any[]) {
+  const lookup = new Map<string, any>();
+
+  for (const badge of badges) {
+    lookup.set(badge.id, badge);
+    lookup.set(badge.slug, badge);
+  }
+
+  return lookup;
+}
+
+function mapUserBadgeFromDb(data: any, resolvedBadgeData?: any): UserBadge {
+  const badgeData = resolvedBadgeData || data.badges;
   const badge: BadgeDB | null = badgeData
     ? {
         id: badgeData.id,
@@ -71,7 +86,7 @@ function mapUserBadgeFromDb(data: any): UserBadge {
 
   return {
     badgeId: data.badge_id,
-    badgeSlug: badge?.slug || null,
+    badgeSlug: badge?.slug || (!isUuid(data.badge_id) ? data.badge_id : null),
     badge,
     unlocked: data.unlocked,
     unlockedAt: data.unlocked_at ? new Date(data.unlocked_at) : null,
@@ -362,13 +377,21 @@ export async function saveUserBadge(uid: string, badgeId: string) {
 }
 
 export async function getUserBadges(uid: string): Promise<UserBadge[]> {
-  const { data, error } = await supabase
-    .from("user_badges")
-    .select("*, badges(*)")
-    .eq("user_id", uid);
+  const [{ data, error }, { data: badgeRows, error: badgeError }] = await Promise.all([
+    supabase
+      .from("user_badges")
+      .select("user_id, badge_id, unlocked, unlocked_at, awarded_by, awarded_note")
+      .eq("user_id", uid),
+    supabase
+      .from("badges")
+      .select("*")
+      .eq("is_active", true),
+  ]);
 
-  if (error || !data) return [];
-  return data.map(mapUserBadgeFromDb);
+  if (error || badgeError || !data || !badgeRows) return [];
+
+  const badgeLookup = buildBadgeLookupFromDb(badgeRows);
+  return data.map((row) => mapUserBadgeFromDb(row, badgeLookup.get(row.badge_id)));
 }
 
 // ===== ADMIN =====

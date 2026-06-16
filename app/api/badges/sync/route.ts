@@ -18,7 +18,6 @@ type GreenLogRow = {
 
 type ExistingUserBadgeRow = {
   badge_id: string;
-  badges: { slug: string | null } | { slug: string | null }[] | null;
 };
 
 function firstRelation<T>(value: T | T[] | null): T | null {
@@ -39,25 +38,38 @@ export async function POST() {
       return NextResponse.json({ error: "Sesi login tidak valid." }, { status: 401 });
     }
 
-    const [{ data: progressRows, error: progressError }, { data: greenLogRows, error: greenLogError }, { data: existingRows, error: badgeError }] =
-      await Promise.all([
-        supabase
-          .from("user_progress")
-          .select("module_id, completed, modules(slug)")
-          .eq("user_id", user.id)
-          .eq("completed", true),
-        supabase
-          .from("green_logs")
-          .select("action_date")
-          .eq("user_id", user.id),
-        supabase
-          .from("user_badges")
-          .select("badge_id, badges(slug)")
-          .eq("user_id", user.id),
-      ]);
+    const adminSupabase = getAdminSupabase();
+    const [
+      { data: progressRows, error: progressError },
+      { data: greenLogRows, error: greenLogError },
+      { data: existingRows, error: existingBadgeError },
+      { data: badgeRows, error: activeBadgeError },
+    ] = await Promise.all([
+      supabase
+        .from("user_progress")
+        .select("module_id, completed, modules(slug)")
+        .eq("user_id", user.id)
+        .eq("completed", true),
+      supabase
+        .from("green_logs")
+        .select("action_date")
+        .eq("user_id", user.id),
+      supabase
+        .from("user_badges")
+        .select("badge_id")
+        .eq("user_id", user.id),
+      adminSupabase
+        .from("badges")
+        .select("*")
+        .eq("is_active", true),
+    ]);
 
-    if (progressError || greenLogError || badgeError) {
+    if (progressError || greenLogError || existingBadgeError) {
       return NextResponse.json({ error: "Gagal memuat data badge pengguna." }, { status: 500 });
+    }
+
+    if (activeBadgeError) {
+      return NextResponse.json({ error: "Gagal memuat daftar badge aktif." }, { status: 500 });
     }
 
     const completedModuleSlugs = ((progressRows || []) as unknown as ProgressWithModule[])
@@ -71,9 +83,20 @@ export async function POST() {
         .filter((date): date is string => Boolean(date))
     );
 
+    const activeBadges = ((badgeRows || []) as Parameters<typeof mapBadgeFromDb>[0][])
+      .map(mapBadgeFromDb);
+    const badgeSlugByKey = new Map<string, string>();
+    const activeBadgeBySlug = new Map<string, BadgeDB>();
+
+    for (const badge of activeBadges) {
+      badgeSlugByKey.set(badge.id, badge.slug);
+      badgeSlugByKey.set(badge.slug, badge.slug);
+      activeBadgeBySlug.set(badge.slug, badge);
+    }
+
     const existingBadgeSlugs = new Set(
-      ((existingRows || []) as unknown as ExistingUserBadgeRow[])
-        .map((row) => firstRelation(row.badges)?.slug)
+      ((existingRows || []) as ExistingUserBadgeRow[])
+        .map((row) => badgeSlugByKey.get(row.badge_id) || row.badge_id)
         .filter((slug): slug is string => Boolean(slug))
     );
 
@@ -93,44 +116,38 @@ export async function POST() {
       return NextResponse.json({ unlocked: [] });
     }
 
-    const adminSupabase = getAdminSupabase();
-    const { data: badgeRows, error: activeBadgeError } = await adminSupabase
-      .from("badges")
-      .select("*")
-      .in("slug", eligibleSlugs)
-      .eq("is_active", true);
+    const badgesToUnlock = eligibleSlugs
+      .map((slug) => activeBadgeBySlug.get(slug))
+      .filter((badge): badge is BadgeDB => Boolean(badge));
 
-    if (activeBadgeError) {
-      return NextResponse.json({ error: "Gagal memuat daftar badge aktif." }, { status: 500 });
-    }
-
-    const activeBadges = ((badgeRows || []) as Parameters<typeof mapBadgeFromDb>[0][])
-      .map(mapBadgeFromDb);
-
-    if (activeBadges.length === 0) {
+    if (badgesToUnlock.length === 0) {
       return NextResponse.json({ unlocked: [] });
     }
 
-    const { error: insertError } = await adminSupabase
-      .from("user_badges")
-      .upsert(
-        activeBadges.map((badge) => ({
-          user_id: user.id,
-          badge_id: badge.id,
-          unlocked: true,
-          unlocked_at: new Date().toISOString(),
-          awarded_by: null,
-          awarded_note: "Dibuka otomatis dari aktivitas pengguna.",
-        })),
-        { onConflict: "user_id,badge_id", ignoreDuplicates: true }
-      );
+    const existingBadgeKeys = new Set(((existingRows || []) as ExistingUserBadgeRow[]).map((row) => row.badge_id));
+    const rowsToInsert = badgesToUnlock
+      .filter((badge) => !existingBadgeKeys.has(badge.id) && !existingBadgeKeys.has(badge.slug))
+      .map((badge) => ({
+        user_id: user.id,
+        badge_id: badge.id,
+        unlocked: true,
+        unlocked_at: new Date().toISOString(),
+        awarded_by: null,
+        awarded_note: "Dibuka otomatis dari aktivitas pengguna.",
+      }));
 
-    if (insertError) {
-      return NextResponse.json({ error: "Gagal menyimpan badge pengguna." }, { status: 500 });
+    if (rowsToInsert.length > 0) {
+      const { error: insertError } = await adminSupabase
+        .from("user_badges")
+        .insert(rowsToInsert);
+
+      if (insertError && insertError.code !== "23505") {
+        return NextResponse.json({ error: "Gagal menyimpan badge pengguna." }, { status: 500 });
+      }
     }
 
     return NextResponse.json({
-      unlocked: activeBadges.map((badge: BadgeDB) => ({
+      unlocked: badgesToUnlock.map((badge: BadgeDB) => ({
         id: badge.id,
         slug: badge.slug,
         name: badge.name,

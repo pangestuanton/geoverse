@@ -1,5 +1,8 @@
 import { supabase } from "./supabase";
 import type { BadgeDB, UserBadgeWithDetails } from "@/types";
+import type { getAdminSupabase as createAdminSupabaseClient } from "@/utils/supabase/server-admin";
+
+type AdminSupabaseClient = ReturnType<typeof createAdminSupabaseClient>;
 
 type BadgeRow = {
   id: string;
@@ -14,13 +17,11 @@ type BadgeRow = {
 };
 
 type UserBadgeRow = {
-  id: string;
   user_id: string;
   badge_id: string;
   awarded_by: string | null;
   awarded_note: string | null;
   unlocked_at: string | null;
-  badges: BadgeRow | null;
 };
 
 const DEFAULT_BADGE_ICON = "\uD83C\uDFC5";
@@ -39,18 +40,71 @@ export function mapBadgeFromDb(data: BadgeRow): BadgeDB {
   };
 }
 
-function mapUserBadgeWithDetailsFromDb(data: UserBadgeRow): UserBadgeWithDetails | null {
-  if (!data.badges) return null;
+type UserRowSummary = {
+  uid: string;
+  name: string | null;
+  display_name: string | null;
+};
+
+function buildBadgeLookup(badges: BadgeRow[]) {
+  const lookup = new Map<string, BadgeRow>();
+
+  for (const badge of badges) {
+    lookup.set(badge.id, badge);
+    lookup.set(badge.slug, badge);
+  }
+
+  return lookup;
+}
+
+function syntheticUserBadgeId(userId: string, badgeId: string) {
+  return `${userId}:${badgeId}`;
+}
+
+function mapUserBadgeWithDetailsFromDb(data: UserBadgeRow, badge: BadgeRow): UserBadgeWithDetails {
 
   return {
-    id: data.id,
+    id: syntheticUserBadgeId(data.user_id, data.badge_id),
     userId: data.user_id,
     badgeId: data.badge_id,
-    badge: mapBadgeFromDb(data.badges),
+    badge: mapBadgeFromDb(badge),
     awardedBy: data.awarded_by || null,
     awardedNote: data.awarded_note || null,
     unlockedAt: data.unlocked_at ? new Date(data.unlocked_at) : new Date(),
   };
+}
+
+function isUuidCastError(error: { code?: string; message?: string } | null) {
+  return error?.code === "22P02" || error?.message?.includes("invalid input syntax for type uuid");
+}
+
+async function hasExistingUserBadge(
+  adminSupabase: AdminSupabaseClient,
+  userId: string,
+  badge: Pick<BadgeRow, "id" | "slug">
+) {
+  const candidateBadgeIds = Array.from(new Set([badge.id, badge.slug].filter(Boolean)));
+
+  for (const candidateBadgeId of candidateBadgeIds) {
+    const { data, error } = await adminSupabase
+      .from("user_badges")
+      .select("badge_id")
+      .eq("user_id", userId)
+      .eq("badge_id", candidateBadgeId)
+      .limit(1);
+
+    if (error) {
+      if (candidateBadgeId === badge.slug && isUuidCastError(error)) {
+        continue;
+      }
+
+      throw error;
+    }
+
+    if ((data || []).length > 0) return true;
+  }
+
+  return false;
 }
 
 // ===== PUBLIC =====
@@ -67,16 +121,27 @@ export async function getActiveBadges(): Promise<BadgeDB[]> {
 }
 
 export async function getUserBadgesWithDetails(userId: string): Promise<UserBadgeWithDetails[]> {
-  const { data, error } = await supabase
-    .from("user_badges")
-    .select("id, user_id, badge_id, awarded_by, awarded_note, unlocked_at, badges(*)")
-    .eq("user_id", userId)
-    .order("unlocked_at", { ascending: false });
+  const [{ data: userBadgeRows, error: userBadgeError }, { data: badgeRows, error: badgeError }] = await Promise.all([
+    supabase
+      .from("user_badges")
+      .select("user_id, badge_id, awarded_by, awarded_note, unlocked_at")
+      .eq("user_id", userId)
+      .order("unlocked_at", { ascending: false }),
+    supabase
+      .from("badges")
+      .select("*")
+      .eq("is_active", true),
+  ]);
 
-  if (error || !data) return [];
+  if (userBadgeError || badgeError || !userBadgeRows || !badgeRows) return [];
 
-  return (data as unknown as UserBadgeRow[])
-    .map(mapUserBadgeWithDetailsFromDb)
+  const badgeLookup = buildBadgeLookup(badgeRows as BadgeRow[]);
+
+  return (userBadgeRows as UserBadgeRow[])
+    .map((row) => {
+      const badge = badgeLookup.get(row.badge_id);
+      return badge ? mapUserBadgeWithDetailsFromDb(row, badge) : null;
+    })
     .filter((badge): badge is UserBadgeWithDetails => Boolean(badge));
 }
 
@@ -159,12 +224,17 @@ export async function awardBadgeToUser(
   const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
-  const { data: existing } = await adminSupabase
-    .from("user_badges")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("badge_id", badgeId)
+  const { data: badge, error: badgeError } = await adminSupabase
+    .from("badges")
+    .select("id, slug, name, description, icon, category, is_active, created_at, updated_at")
+    .eq("id", badgeId)
     .maybeSingle();
+
+  if (badgeError) throw badgeError;
+  if (!badge) throw new Error("Badge tidak ditemukan.");
+  if (!badge.is_active) throw new Error("Badge tidak aktif tidak bisa diberikan.");
+
+  const existing = await hasExistingUserBadge(adminSupabase, userId, badge);
 
   if (existing) {
     throw new Error("Pengguna sudah memiliki badge ini.");
@@ -172,11 +242,11 @@ export async function awardBadgeToUser(
 
   const { error } = await adminSupabase.from("user_badges").insert({
     user_id: userId,
-    badge_id: badgeId,
+    badge_id: badge.id,
     unlocked: true,
     unlocked_at: new Date().toISOString(),
     awarded_by: adminUid,
-    awarded_note: note || null,
+    awarded_note: note?.trim() || null,
   });
 
   if (error) {
@@ -195,15 +265,28 @@ export async function getAllUserBadgesAdmin(): Promise<
 
   const { data, error } = await adminSupabase
     .from("user_badges")
-    .select("user_id, badge_id, awarded_by, unlocked_at, users(name, display_name), badges(name)")
+    .select("user_id, badge_id, awarded_by, awarded_note, unlocked_at")
     .order("unlocked_at", { ascending: false });
 
   if (error || !data) return [];
 
-  return data.map((row) => {
-    const user = Array.isArray(row.users) ? row.users[0] : row.users;
-    const badge = Array.isArray(row.badges) ? row.badges[0] : row.badges;
+  const userBadgeRows = data as UserBadgeRow[];
+  const userIds = Array.from(new Set(userBadgeRows.map((row) => row.user_id)));
+  const [{ data: users, error: usersError }, { data: badges, error: badgesError }] = await Promise.all([
+    userIds.length > 0
+      ? adminSupabase.from("users").select("uid, name, display_name").in("uid", userIds)
+      : Promise.resolve({ data: [], error: null }),
+    adminSupabase.from("badges").select("*"),
+  ]);
 
+  if (usersError || badgesError || !users || !badges) return [];
+
+  const userLookup = new Map((users as UserRowSummary[]).map((user) => [user.uid, user]));
+  const badgeLookup = buildBadgeLookup(badges as BadgeRow[]);
+
+  return userBadgeRows.map((row) => {
+    const user = userLookup.get(row.user_id);
+    const badge = badgeLookup.get(row.badge_id);
     return {
       userId: row.user_id,
       userName: user?.display_name || user?.name || "Pengguna",
