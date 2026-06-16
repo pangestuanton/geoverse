@@ -4,7 +4,7 @@ import { requireAdminUser } from "@/lib/adminRoute";
 import { getAdminSupabase } from "@/utils/supabase/server-admin";
 
 const updateUserSchema = z.object({
-  uid: z.string().uuid("Pengguna tidak valid."),
+  uid: z.string().min(1, "Pengguna tidak valid."),
   name: z.string().min(2, "Nama minimal 2 karakter.").max(80, "Nama maksimal 80 karakter."),
   totalPoints: z.number().int().min(0, "Poin tidak boleh negatif.").max(1_000_000, "Poin terlalu besar."),
 });

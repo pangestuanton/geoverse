@@ -5,7 +5,7 @@ import { requireAdminUser } from "@/lib/adminRoute";
 
 const awardSchema = z.object({
   badgeId: z.string().uuid("Badge tidak valid."),
-  userId: z.string().uuid("Pengguna tidak valid."),
+  userId: z.string().min(1, "Pengguna tidak valid."),
   note: z.string().max(200, "Catatan maksimal 200 karakter.").optional(),
 });
 
