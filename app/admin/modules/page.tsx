@@ -5,7 +5,6 @@ import { Plus, BookOpen, Eye, EyeOff, Edit } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { getAllModulesAdmin, createModule } from "@/lib/modules";
 import type { ModuleDB } from "@/types";
 import type { ModuleFormData } from "@/lib/validations";
 import ModuleForm from "@/components/admin/ModuleForm";
@@ -19,11 +18,12 @@ export default function AdminModulesPage() {
 
   const fetchModules = useCallback(async () => {
     try {
-      const data = await getAllModulesAdmin();
-      setModules(data);
+      const response = await fetch("/api/admin/modules");
+      const payload = (await response.json().catch(() => null)) as { modules?: ModuleDB[]; error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Gagal memuat modul.");
+      setModules(payload?.modules || []);
     } catch (err) {
-      console.error(err);
-      toast.error("Gagal memuat modul.");
+      toast.error(err instanceof Error ? err.message : "Gagal memuat modul.");
     } finally {
       setDataLoading(false);
     }
@@ -36,20 +36,13 @@ export default function AdminModulesPage() {
   }, [loading, isAdmin, fetchModules]);
 
   const handleCreate = async (data: ModuleFormData) => {
-    await createModule({
-      slug: data.slug,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      categoryLabel: data.categoryLabel,
-      readingTime: data.readingTime,
-      difficulty: data.difficulty,
-      content: data.content,
-      keyPoints: data.keyPoints,
-      reflection: data.reflection,
-      status: data.status,
-      sortOrder: data.sortOrder,
+    const response = await fetch("/api/admin/modules", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    if (!response.ok) throw new Error(payload?.error || "Gagal membuat modul.");
     toast.success("Modul berhasil dibuat!");
     setShowCreateForm(false);
     fetchModules();

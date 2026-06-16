@@ -2,7 +2,7 @@
 
 import { createAdminNotification } from "./adminNotifications";
 import { isAdminEmail } from "./auth";
-import type { GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
+import type { BadgeDB, GreenLog, UserProfile, UserProgress, UserBadge } from "@/types";
 import { supabase } from "./supabase";
 
 // ===== MAPPING UTILITIES =====
@@ -53,9 +53,26 @@ function mapProgressFromDb(data: any): UserProgress {
   };
 }
 
-function mapBadgeFromDb(data: any): UserBadge {
+function mapUserBadgeFromDb(data: any): UserBadge {
+  const badgeData = data.badges;
+  const badge: BadgeDB | null = badgeData
+    ? {
+        id: badgeData.id,
+        slug: badgeData.slug,
+        name: badgeData.name,
+        description: badgeData.description || "",
+        icon: badgeData.icon || "\uD83C\uDFC5",
+        category: badgeData.category || "umum",
+        isActive: badgeData.is_active ?? true,
+        createdAt: badgeData.created_at ? new Date(badgeData.created_at) : new Date(),
+        updatedAt: badgeData.updated_at ? new Date(badgeData.updated_at) : new Date(),
+      }
+    : null;
+
   return {
     badgeId: data.badge_id,
+    badgeSlug: badge?.slug || null,
+    badge,
     unlocked: data.unlocked,
     unlockedAt: data.unlocked_at ? new Date(data.unlocked_at) : null,
   };
@@ -326,41 +343,32 @@ export async function getModuleProgress(
 // ===== BADGES =====
 
 export async function saveUserBadge(uid: string, badgeId: string) {
-  const { error } = await supabase
-    .from("user_badges")
-    .upsert(
-      {
-        user_id: uid,
-        badge_id: badgeId,
-        unlocked: true,
-        unlocked_at: new Date().toISOString(),
-        awarded_by: null, // null = sistem otomatis
-      },
-      {
-        onConflict: "user_id,badge_id",
-      }
-    );
+  void badgeId;
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  if (error) throw error;
+  if (authError || !user || user.id !== uid) {
+    throw new Error("Sesi login tidak valid.");
+  }
 
-  createAdminNotification({
-    type: "user_activity",
-    title: "Badge Baru Terbuka",
-    message: `Membuka badge pencapaian: ${badgeId}.`,
-    userId: uid,
-    sourceCollection: "badges",
-    sourceId: badgeId,
-  }).catch(console.error);
+  const response = await fetch("/api/badges/sync", { method: "POST" });
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+  if (!response.ok) {
+    throw new Error(payload?.error || "Gagal menyinkronkan badge.");
+  }
 }
 
 export async function getUserBadges(uid: string): Promise<UserBadge[]> {
   const { data, error } = await supabase
     .from("user_badges")
-    .select("*")
+    .select("*, badges(*)")
     .eq("user_id", uid);
 
   if (error || !data) return [];
-  return data.map(mapBadgeFromDb);
+  return data.map(mapUserBadgeFromDb);
 }
 
 // ===== ADMIN =====

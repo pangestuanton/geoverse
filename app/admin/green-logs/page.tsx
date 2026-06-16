@@ -2,23 +2,26 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
-import { useAuth } from "@/hooks/useAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import GreenLogTable from "@/components/admin/GreenLogTable";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { getAllGreenLogs, updateGreenLogStatus } from "@/lib/firestore";
 import type { GreenLog } from "@/types";
 
 export default function AdminGreenLogsPage() {
   const { loading: authLoading, isAdmin } = useAdminGuard();
-  const { user } = useAuth();
   const [logs, setLogs] = useState<GreenLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchLogs = () => {
-    getAllGreenLogs()
-      .then(setLogs)
-      .catch(console.error)
+    fetch("/api/admin/green-logs")
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as { logs?: GreenLog[]; error?: string } | null;
+        if (!response.ok) throw new Error(payload?.error || "Gagal memuat Green Log.");
+        setLogs(payload?.logs || []);
+        setError(null);
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Gagal memuat Green Log."))
       .finally(() => setLoading(false));
   };
 
@@ -28,41 +31,22 @@ export default function AdminGreenLogsPage() {
 
   const handleApprove = async (logId: string) => {
     try {
-      await updateGreenLogStatus(logId, "approved", user?.uid);
-      setLogs((prev) =>
-        prev.map((l) =>
-          l.id === logId
-            ? { ...l, status: "approved" as const, rejectionReason: null, reviewedBy: user?.uid }
-            : l
-        )
-      );
+      const updated = await updateLogStatus(logId, "approved");
+      setLogs((prev) => prev.map((log) => (log.id === logId ? updated : log)));
       toast.success("Green Log berhasil disetujui. Poin ditambahkan ke pengguna.");
     } catch (error) {
-      console.error(error);
-      toast.error("Gagal menyetujui Green Log.");
+      toast.error(error instanceof Error ? error.message : "Gagal menyetujui Green Log.");
       throw error;
     }
   };
 
   const handleReject = async (logId: string, reason: string) => {
     try {
-      await updateGreenLogStatus(logId, "rejected", user?.uid, reason);
-      setLogs((prev) =>
-        prev.map((l) =>
-          l.id === logId
-            ? {
-                ...l,
-                status: "rejected" as const,
-                rejectionReason: reason,
-                reviewedBy: user?.uid,
-              }
-            : l
-        )
-      );
+      const updated = await updateLogStatus(logId, "rejected", reason);
+      setLogs((prev) => prev.map((log) => (log.id === logId ? updated : log)));
       toast.success("Green Log ditolak. Alasan disimpan.");
     } catch (error) {
-      console.error(error);
-      toast.error("Gagal menolak Green Log.");
+      toast.error(error instanceof Error ? error.message : "Gagal menolak Green Log.");
       throw error;
     }
   };
@@ -88,6 +72,11 @@ export default function AdminGreenLogsPage() {
             )}
           </p>
         </div>
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <GreenLogTable
           logs={logs}
           onApprove={handleApprove}
@@ -96,4 +85,19 @@ export default function AdminGreenLogsPage() {
       </div>
     </AdminSidebar>
   );
+}
+
+async function updateLogStatus(logId: string, status: "approved" | "rejected", rejectionReason?: string) {
+  const response = await fetch("/api/admin/green-logs", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ logId, status, rejectionReason }),
+  });
+  const payload = (await response.json().catch(() => null)) as { log?: GreenLog; error?: string } | null;
+
+  if (!response.ok || !payload?.log) {
+    throw new Error(payload?.error || "Gagal memperbarui Green Log.");
+  }
+
+  return payload.log;
 }

@@ -4,11 +4,6 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, Loader2, Edit2, CheckCircle, AlertCircle, X } from "lucide-react";
 import { quizQuestionSchema, type QuizQuestionFormData } from "@/lib/validations";
-import {
-  createQuizQuestion,
-  updateQuizQuestion,
-  softDeleteQuizQuestion,
-} from "@/lib/modules";
 import type { QuizQuestionDB } from "@/types";
 import toast from "react-hot-toast";
 
@@ -28,27 +23,29 @@ export default function QuizQuestionManager({ moduleId, initialQuestions }: Quiz
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleAdd = async (data: QuizQuestionFormData) => {
-    const q = await createQuizQuestion(moduleId, {
-      question: data.question,
-      options: data.options,
-      correctAnswer: data.correctAnswer,
-      explanation: data.explanation,
-      points: data.points,
-      sortOrder: questions.length,
+    const response = await fetch(`/api/admin/modules/${moduleId}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, sortOrder: questions.length }),
     });
+    const payload = (await response.json().catch(() => null)) as { question?: QuizQuestionDB; error?: string } | null;
+    if (!response.ok || !payload?.question) throw new Error(payload?.error || "Gagal menambahkan soal.");
+
+    const q = payload.question;
     setQuestions((prev) => [...prev, q]);
     setShowAddForm(false);
     toast.success("Soal berhasil ditambahkan.");
   };
 
   const handleUpdate = async (questionId: string, data: QuizQuestionFormData) => {
-    await updateQuizQuestion(questionId, {
-      question: data.question,
-      options: data.options,
-      correctAnswer: data.correctAnswer,
-      explanation: data.explanation,
-      points: data.points,
+    const response = await fetch(`/api/admin/modules/${moduleId}/questions`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, questionId }),
     });
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    if (!response.ok) throw new Error(payload?.error || "Gagal memperbarui soal.");
+
     setQuestions((prev) =>
       prev.map((q) =>
         q.id === questionId
@@ -64,11 +61,17 @@ export default function QuizQuestionManager({ moduleId, initialQuestions }: Quiz
     if (!confirm("Hapus soal ini? Soal akan di-soft delete (progress user tidak terpengaruh).")) return;
     setDeletingId(questionId);
     try {
-      await softDeleteQuizQuestion(questionId);
+      const response = await fetch(`/api/admin/modules/${moduleId}/questions`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Gagal menghapus soal.");
       setQuestions((prev) => prev.filter((q) => q.id !== questionId));
       toast.success("Soal berhasil dihapus.");
-    } catch {
-      toast.error("Gagal menghapus soal.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menghapus soal.");
     } finally {
       setDeletingId(null);
     }

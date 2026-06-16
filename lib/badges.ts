@@ -1,17 +1,37 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { supabase } from "./supabase";
 import type { BadgeDB, UserBadgeWithDetails } from "@/types";
 
-// ===== MAPPING =====
+type BadgeRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  category: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
 
-function mapBadgeFromDb(data: any): BadgeDB {
+type UserBadgeRow = {
+  id: string;
+  user_id: string;
+  badge_id: string;
+  awarded_by: string | null;
+  awarded_note: string | null;
+  unlocked_at: string | null;
+  badges: BadgeRow | null;
+};
+
+const DEFAULT_BADGE_ICON = "\uD83C\uDFC5";
+
+export function mapBadgeFromDb(data: BadgeRow): BadgeDB {
   return {
     id: data.id,
     slug: data.slug,
     name: data.name,
     description: data.description || "",
-    icon: data.icon || "🏅",
+    icon: data.icon || DEFAULT_BADGE_ICON,
     category: data.category || "umum",
     isActive: data.is_active ?? true,
     createdAt: data.created_at ? new Date(data.created_at) : new Date(),
@@ -19,7 +39,9 @@ function mapBadgeFromDb(data: any): BadgeDB {
   };
 }
 
-function mapUserBadgeWithDetailsFromDb(data: any): UserBadgeWithDetails {
+function mapUserBadgeWithDetailsFromDb(data: UserBadgeRow): UserBadgeWithDetails | null {
+  if (!data.badges) return null;
+
   return {
     id: data.id,
     userId: data.user_id,
@@ -41,18 +63,21 @@ export async function getActiveBadges(): Promise<BadgeDB[]> {
     .order("created_at", { ascending: true });
 
   if (error || !data) return [];
-  return data.map(mapBadgeFromDb);
+  return (data as BadgeRow[]).map(mapBadgeFromDb);
 }
 
 export async function getUserBadgesWithDetails(userId: string): Promise<UserBadgeWithDetails[]> {
   const { data, error } = await supabase
     .from("user_badges")
-    .select("*, badges(*)")
+    .select("id, user_id, badge_id, awarded_by, awarded_note, unlocked_at, badges(*)")
     .eq("user_id", userId)
     .order("unlocked_at", { ascending: false });
 
   if (error || !data) return [];
-  return data.filter((d) => d.badges).map(mapUserBadgeWithDetailsFromDb);
+
+  return (data as unknown as UserBadgeRow[])
+    .map(mapUserBadgeWithDetailsFromDb)
+    .filter((badge): badge is UserBadgeWithDetails => Boolean(badge));
 }
 
 // ===== ADMIN =====
@@ -66,7 +91,7 @@ export async function getAllBadgesAdmin(): Promise<BadgeDB[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data || []).map(mapBadgeFromDb);
+  return ((data || []) as BadgeRow[]).map(mapBadgeFromDb);
 }
 
 export async function createBadge(
@@ -94,7 +119,8 @@ export async function createBadge(
     }
     throw error;
   }
-  return mapBadgeFromDb(data);
+
+  return mapBadgeFromDb(data as BadgeRow);
 }
 
 export async function updateBadge(
@@ -104,7 +130,7 @@ export async function updateBadge(
   const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
-  const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+  const payload: Record<string, string | boolean> = { updated_at: new Date().toISOString() };
   if (updates.slug !== undefined) payload.slug = updates.slug;
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.description !== undefined) payload.description = updates.description;
@@ -124,10 +150,6 @@ export async function toggleBadgeActive(badgeId: string, isActive: boolean): Pro
   await updateBadge(badgeId, { isActive });
 }
 
-/**
- * Berikan badge ke user tertentu.
- * Mencegah duplikasi: jika user sudah punya badge ini, akan gagal secara graceful.
- */
 export async function awardBadgeToUser(
   badgeId: string,
   userId: string,
@@ -137,7 +159,6 @@ export async function awardBadgeToUser(
   const { getAdminSupabase } = await import("@/utils/supabase/server-admin");
   const adminSupabase = getAdminSupabase();
 
-  // Cek apakah user sudah punya badge ini
   const { data: existing } = await adminSupabase
     .from("user_badges")
     .select("id")
@@ -179,12 +200,17 @@ export async function getAllUserBadgesAdmin(): Promise<
 
   if (error || !data) return [];
 
-  return data.map((d: any) => ({
-    userId: d.user_id,
-    userName: d.users?.display_name || d.users?.name || "Pengguna",
-    badgeId: d.badge_id,
-    badgeName: d.badges?.name || "",
-    awardedBy: d.awarded_by,
-    unlockedAt: d.unlocked_at ? new Date(d.unlocked_at) : new Date(),
-  }));
+  return data.map((row) => {
+    const user = Array.isArray(row.users) ? row.users[0] : row.users;
+    const badge = Array.isArray(row.badges) ? row.badges[0] : row.badges;
+
+    return {
+      userId: row.user_id,
+      userName: user?.display_name || user?.name || "Pengguna",
+      badgeId: row.badge_id,
+      badgeName: badge?.name || "",
+      awardedBy: row.awarded_by,
+      unlockedAt: row.unlocked_at ? new Date(row.unlocked_at) : new Date(),
+    };
+  });
 }

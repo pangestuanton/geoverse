@@ -12,8 +12,7 @@ import QuizCard from "@/components/learn/QuizCard";
 import { supabase } from "@/lib/supabase";
 import { useUserData } from "@/hooks/useUserData";
 import { getModuleBySlug } from "@/lib/modules";
-import { badges } from "@/data/badges";
-import { saveModuleProgress, updateUserPoints, saveUserBadge } from "@/lib/firestore";
+import { saveModuleProgress, updateUserPoints } from "@/lib/firestore";
 import { calculateModulePoints } from "@/lib/points";
 import { createAdminNotification } from "@/lib/adminNotifications";
 import type { ModuleDB } from "@/types";
@@ -31,7 +30,7 @@ export default function ModuleDetailPage() {
 function ModuleDetailContent() {
   const params = useParams();
   const router = useRouter();
-  const { progress, userBadges, refetch } = useUserData();
+  const { progress, refetch } = useUserData();
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -103,24 +102,17 @@ function ModuleDetailContent() {
       const points = calculateModulePoints(quizScore);
       await updateUserPoints(uid, points);
 
-      const completedModuleIds = [
-        ...progress.filter((p) => p.completed).map((p) => p.moduleId),
-        module.id,
-      ];
-      const unlockedBadgeIds = userBadges.filter((b) => b.unlocked).map((b) => b.badgeId);
+      const badgeResponse = await fetch("/api/badges/sync", { method: "POST" });
+      const badgePayload = (await badgeResponse.json().catch(() => null)) as
+        | { unlocked?: { name: string; icon: string }[]; error?: string }
+        | null;
 
-      for (const badge of badges) {
-        if (unlockedBadgeIds.includes(badge.id)) continue;
-        const shouldUnlock = badge.checkUnlock({
-          totalGreenLogs: 0,
-          completedModules: completedModuleIds,
-          greenLogDays: 0,
-          completedChallenges: 0,
-        });
-        if (shouldUnlock) {
-          await saveUserBadge(uid, badge.id);
-          toast.success(`Badge "${badge.name}" terbuka! ${badge.icon}`);
-        }
+      if (!badgeResponse.ok) {
+        throw new Error(badgePayload?.error || "Gagal menyinkronkan badge.");
+      }
+
+      for (const badge of badgePayload?.unlocked || []) {
+        toast.success(`Badge "${badge.name}" terbuka! ${badge.icon}`);
       }
 
       setCompleted(true);

@@ -14,7 +14,6 @@ const AdminChart = dynamic(() => import("@/components/admin/AdminChart"), {
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminStatCard from "@/components/admin/AdminStatCard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { getAllUsers, getAllGreenLogs } from "@/lib/firestore";
 import type { UserProfile, GreenLog } from "@/types";
 
 export default function AdminPage() {
@@ -22,12 +21,24 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [logs, setLogs] = useState<GreenLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && isAdmin) {
-      Promise.all([getAllUsers(), getAllGreenLogs()])
-        .then(([u, l]) => { setUsers(u); setLogs(l); })
-        .catch(console.error)
+      Promise.all([
+        fetch("/api/admin/users").then(async (response) => {
+          const payload = (await response.json().catch(() => null)) as { users?: UserProfile[]; error?: string } | null;
+          if (!response.ok) throw new Error(payload?.error || "Gagal memuat pengguna.");
+          return payload?.users || [];
+        }),
+        fetch("/api/admin/green-logs").then(async (response) => {
+          const payload = (await response.json().catch(() => null)) as { logs?: GreenLog[]; error?: string } | null;
+          if (!response.ok) throw new Error(payload?.error || "Gagal memuat Green Log.");
+          return payload?.logs || [];
+        }),
+      ])
+        .then(([u, l]) => { setUsers(u); setLogs(l); setError(null); })
+        .catch((err: unknown) => setError(err instanceof Error ? err.message : "Gagal memuat ringkasan admin."))
         .finally(() => setLoading(false));
     }
   }, [authLoading, isAdmin]);
@@ -46,6 +57,12 @@ export default function AdminPage() {
           </h1>
           <p className="text-slate-500 mt-1">Monitor aktivitas GeoVerse secara keseluruhan.</p>
         </div>
+
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <AdminStatCard title="Total Pengguna" value={users.length} icon={Users} />

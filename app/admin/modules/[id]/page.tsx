@@ -8,7 +8,6 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ModuleForm from "@/components/admin/ModuleForm";
 import QuizQuestionManager from "@/components/admin/QuizQuestionManager";
-import { getModuleWithQuestionsAdmin, updateModule, deleteModule } from "@/lib/modules";
 import type { ModuleDB } from "@/types";
 import type { ModuleFormData } from "@/lib/validations";
 import toast from "react-hot-toast";
@@ -26,30 +25,27 @@ export default function AdminModuleDetailPage() {
 
   useEffect(() => {
     if (!authLoading && isAdmin && moduleId) {
-      getModuleWithQuestionsAdmin(moduleId)
-        .then(setModule)
-        .catch(() => toast.error("Gagal memuat modul."))
+      fetch(`/api/admin/modules/${moduleId}`)
+        .then(async (response) => {
+          const payload = (await response.json().catch(() => null)) as { module?: ModuleDB; error?: string } | null;
+          if (!response.ok) throw new Error(payload?.error || "Gagal memuat modul.");
+          setModule(payload?.module || null);
+        })
+        .catch((error: unknown) => toast.error(error instanceof Error ? error.message : "Gagal memuat modul."))
         .finally(() => setDataLoading(false));
     }
   }, [authLoading, isAdmin, moduleId]);
 
   const handleUpdate = async (data: ModuleFormData) => {
-    await updateModule(moduleId, {
-      slug: data.slug,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      categoryLabel: data.categoryLabel,
-      readingTime: data.readingTime,
-      difficulty: data.difficulty,
-      content: data.content,
-      keyPoints: data.keyPoints,
-      reflection: data.reflection,
-      status: data.status,
-      sortOrder: data.sortOrder,
+    const response = await fetch(`/api/admin/modules/${moduleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+    const payload = (await response.json().catch(() => null)) as { module?: ModuleDB; error?: string } | null;
+    if (!response.ok) throw new Error(payload?.error || "Gagal memperbarui modul.");
     toast.success("Modul berhasil diperbarui!");
-    setModule((prev) => prev ? { ...prev, ...data, categoryLabel: data.categoryLabel, sortOrder: data.sortOrder } : prev);
+    setModule(payload?.module || null);
     setEditMode(false);
   };
 
@@ -57,11 +53,13 @@ export default function AdminModuleDetailPage() {
     if (!confirm("Arsipkan modul ini? Modul akan diubah ke status Draft dan tidak tampil ke user. Progress user tidak akan hilang.")) return;
     setDeleting(true);
     try {
-      await deleteModule(moduleId);
+      const response = await fetch(`/api/admin/modules/${moduleId}`, { method: "DELETE" });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Gagal mengarsipkan modul.");
       toast.success("Modul berhasil diarsipkan.");
       router.push("/admin/modules");
-    } catch {
-      toast.error("Gagal mengarsipkan modul.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengarsipkan modul.");
       setDeleting(false);
     }
   };
@@ -69,9 +67,19 @@ export default function AdminModuleDetailPage() {
   const toggleStatus = async () => {
     if (!module) return;
     const newStatus = module.status === "published" ? "draft" : "published";
-    await updateModule(moduleId, { status: newStatus });
-    setModule((prev) => prev ? { ...prev, status: newStatus } : prev);
-    toast.success(newStatus === "published" ? "Modul dipublish!" : "Modul dijadikan draft.");
+    try {
+      const response = await fetch(`/api/admin/modules/${moduleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const payload = (await response.json().catch(() => null)) as { module?: ModuleDB; error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Gagal mengubah status modul.");
+      setModule(payload?.module || null);
+      toast.success(newStatus === "published" ? "Modul dipublish!" : "Modul dijadikan draft.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengubah status modul.");
+    }
   };
 
   if (authLoading || dataLoading) return <AdminSidebar><LoadingSpinner /></AdminSidebar>;

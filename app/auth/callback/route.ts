@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isAdminEmail } from "@/lib/auth";
-import { getAdminSupabase } from "@/utils/supabase/server-admin";
+import { getSupabaseConfig } from "@/utils/supabase/config";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
@@ -13,10 +13,9 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(`${origin}/dashboard`);
 
   if (code) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vcaqoepveroxvreswycv.supabase.co";
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_J1U0_Z2aDBvBZ50EsGoMtg_N-r4c5vq";
+    const { url, publishableKey } = getSupabaseConfig();
 
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    const supabase = createServerClient(url, publishableKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll().map(c => ({ name: c.name, value: c.value }));
@@ -78,8 +77,7 @@ export async function GET(request: NextRequest) {
 
       // Self-healing: jika email terdaftar di admin tapi di DB masih 'user'
       if (profile && profile.role !== "admin" && isUserAdmin) {
-        const adminSupabase = getAdminSupabase();
-        await adminSupabase.from("users").update({ role: "admin" }).eq("uid", data.user.id);
+        await supabase.from("users").update({ role: "admin" }).eq("uid", data.user.id);
         profile.role = "admin";
       }
 

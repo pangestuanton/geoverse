@@ -24,7 +24,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { useGreenLogs } from "@/hooks/useGreenLogs";
 import { getDashboardConfig } from "@/lib/dashboard";
 import type { DashboardSectionConfig } from "@/lib/dashboard";
-import { badges as staticBadges } from "@/data/badges";
+import { getEarnedBadgeCards } from "@/lib/badgeDisplay";
 
 export default function DashboardPage() {
   return (
@@ -57,8 +57,7 @@ function DashboardContent() {
   const completedModuleIds = progress.filter((p) => p.completed).map((p) => p.moduleId);
   // Prioritaskan displayName (custom name) dari useAuth, lalu profile, lalu fallback
   const displayName = user?.displayName || profile?.displayName || profile?.name || "Pengguna";
-  const unlockedStaticBadgeIds = userBadges.filter((b) => b.unlocked).map((b) => b.badgeId);
-  const earnedStaticBadges = staticBadges.filter((b) => unlockedStaticBadgeIds.includes(b.id));
+  const earnedBadges = getEarnedBadgeCards(userBadges);
 
   return (
     <Sidebar>
@@ -138,9 +137,9 @@ function DashboardContent() {
             </Link>
           </div>
 
-          {earnedStaticBadges.length > 0 ? (
+          {earnedBadges.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {earnedStaticBadges.map((badge) => (
+              {earnedBadges.map((badge) => (
                 <BadgeCard key={badge.id} badge={badge} isUnlocked={true} />
               ))}
             </div>

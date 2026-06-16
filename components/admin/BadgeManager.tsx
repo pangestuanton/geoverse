@@ -5,11 +5,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Edit2, ToggleLeft, ToggleRight, Gift, Loader2, X, Award } from "lucide-react";
 import { badgeSchema, awardBadgeSchema, type BadgeFormData, type AwardBadgeFormData } from "@/lib/validations";
-import {
-  createBadge,
-  updateBadge,
-  toggleBadgeActive,
-} from "@/lib/badges";
 import type { BadgeDB } from "@/types";
 import type { UserProfile } from "@/types";
 import toast from "react-hot-toast";
@@ -23,6 +18,21 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+async function readJsonError(response: Response, fallback: string) {
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  return payload?.error || fallback;
+}
+
+function canRenderWithNextImage(src: string) {
+  if (src.startsWith("/")) return true;
+  try {
+    const host = new URL(src).hostname;
+    return host.endsWith(".supabase.co") || host === "lh3.googleusercontent.com";
+  } catch {
+    return false;
+  }
+}
+
 export default function BadgeManager({ initialBadges, users }: BadgeManagerProps) {
   const [badges, setBadges] = useState<BadgeDB[]>(initialBadges);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -31,13 +41,18 @@ export default function BadgeManager({ initialBadges, users }: BadgeManagerProps
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const handleCreate = async (data: BadgeFormData) => {
-    const newBadge = await createBadge({
-      slug: data.slug,
-      name: data.name,
-      description: data.description,
-      icon: data.icon,
-      category: data.category,
+    const response = await fetch("/api/admin/badges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+      throw new Error(await readJsonError(response, "Gagal membuat badge."));
+    }
+
+    const payload = (await response.json()) as { badge: BadgeDB };
+    const newBadge = payload.badge;
     setBadges((prev) => [newBadge, ...prev]);
     setShowCreateForm(false);
     toast.success("Badge berhasil dibuat!");
@@ -45,16 +60,19 @@ export default function BadgeManager({ initialBadges, users }: BadgeManagerProps
 
   const handleUpdate = async (data: BadgeFormData) => {
     if (!editingBadge) return;
-    await updateBadge(editingBadge.id, {
-      slug: data.slug,
-      name: data.name,
-      description: data.description,
-      icon: data.icon,
-      category: data.category,
+
+    const response = await fetch("/api/admin/badges", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", badgeId: editingBadge.id, badge: data }),
     });
-    setBadges((prev) =>
-      prev.map((b) => (b.id === editingBadge.id ? { ...b, ...data } : b))
-    );
+
+    if (!response.ok) {
+      throw new Error(await readJsonError(response, "Gagal memperbarui badge."));
+    }
+
+    const payload = (await response.json()) as { badge: BadgeDB };
+    setBadges((prev) => prev.map((b) => (b.id === editingBadge.id ? payload.badge : b)));
     setEditingBadge(null);
     toast.success("Badge berhasil diperbarui!");
   };
@@ -62,11 +80,21 @@ export default function BadgeManager({ initialBadges, users }: BadgeManagerProps
   const handleToggleActive = async (badge: BadgeDB) => {
     setTogglingId(badge.id);
     try {
-      await toggleBadgeActive(badge.id, !badge.isActive);
-      setBadges((prev) =>
-        prev.map((b) => (b.id === badge.id ? { ...b, isActive: !badge.isActive } : b))
-      );
+      const response = await fetch("/api/admin/badges", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle", badgeId: badge.id, isActive: !badge.isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readJsonError(response, "Gagal mengubah status badge."));
+      }
+
+      const payload = (await response.json()) as { badge: BadgeDB };
+      setBadges((prev) => prev.map((b) => (b.id === badge.id ? payload.badge : b)));
       toast.success(badge.isActive ? "Badge dinonaktifkan." : "Badge diaktifkan.");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Gagal mengubah status badge."));
     } finally {
       setTogglingId(null);
     }
@@ -162,7 +190,7 @@ export default function BadgeManager({ initialBadges, users }: BadgeManagerProps
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl overflow-hidden">
-                    {badge.icon.startsWith("http") ? (
+                    {canRenderWithNextImage(badge.icon) ? (
                       <Image src={badge.icon} alt={badge.name} width={32} height={32} className="w-8 h-8 object-contain" />
                     ) : (
                       badge.icon
@@ -286,7 +314,7 @@ function BadgeForm({
               className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <div className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-xl bg-slate-50">
-              {iconValue?.startsWith("http") ? (
+              {iconValue && canRenderWithNextImage(iconValue) ? (
                 <Image
                   src={iconValue}
                   alt=""

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { getSupabaseConfig } from "@/utils/supabase/config";
 
 // Route definitions
 const PUBLIC_PREFIXES = ["/", "/login", "/auth"];
@@ -53,10 +54,9 @@ export async function proxy(request: NextRequest) {
 function refreshSession(request: NextRequest): NextResponse {
   let response = NextResponse.next({ request });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vcaqoepveroxvreswycv.supabase.co";
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_J1U0_Z2aDBvBZ50EsGoMtg_N-r4c5vq";
+  const { url, publishableKey } = getSupabaseConfig();
 
-  createServerClient(supabaseUrl, supabaseKey, {
+  createServerClient(url, publishableKey, {
     cookies: {
       getAll() { return request.cookies.getAll(); },
       setAll(toSet) {
@@ -81,10 +81,9 @@ async function getSessionAndRefresh(request: NextRequest): Promise<{
 }> {
   let response = NextResponse.next({ request });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vcaqoepveroxvreswycv.supabase.co";
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_J1U0_Z2aDBvBZ50EsGoMtg_N-r4c5vq";
+  const { url, publishableKey } = getSupabaseConfig();
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  const supabase = createServerClient(url, publishableKey, {
     cookies: {
       getAll() { return request.cookies.getAll(); },
       setAll(toSet) {

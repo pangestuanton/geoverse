@@ -4,7 +4,6 @@ import { Loader2, Save, ToggleLeft, ToggleRight, Megaphone, BookOpen, Users, Tro
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { getAllDashboardConfigsAdmin, upsertDashboardConfig } from "@/lib/dashboard";
 import toast from "react-hot-toast";
 
 interface ConfigRow {
@@ -57,6 +56,7 @@ export default function AdminDashboardConfigPage() {
   const { loading: authLoading, isAdmin } = useAdminGuard();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Local editable states
   const [showChallenges, setShowChallenges] = useState(true);
@@ -72,8 +72,13 @@ export default function AdminDashboardConfigPage() {
 
   useEffect(() => {
     if (!authLoading && isAdmin) {
-      getAllDashboardConfigsAdmin()
-        .then((data: ConfigRow[]) => {
+      fetch("/api/admin/dashboard-config")
+        .then(async (response) => {
+          const payload = (await response.json().catch(() => null)) as { configs?: ConfigRow[]; error?: string } | null;
+          if (!response.ok) throw new Error(payload?.error || "Gagal memuat konfigurasi dashboard.");
+          return payload?.configs || [];
+        })
+        .then((data) => {
           for (const row of data) {
             if (row.key === "show_challenges") setShowChallenges(getBooleanValue(row.value, true));
             if (row.key === "show_leaderboard") setShowLeaderboard(getBooleanValue(row.value, true));
@@ -90,8 +95,11 @@ export default function AdminDashboardConfigPage() {
               setAnnouncementActive(row.isActive);
             }
           }
+          setLoadError(null);
         })
-        .catch(console.error)
+        .catch((error: unknown) => {
+          setLoadError(error instanceof Error ? error.message : "Gagal memuat konfigurasi dashboard.");
+        })
         .finally(() => setLoading(false));
     }
   }, [authLoading, isAdmin]);
@@ -99,11 +107,16 @@ export default function AdminDashboardConfigPage() {
   const saveConfig = async (key: string, value: Record<string, unknown>, isActive: boolean) => {
     setSaving(key);
     try {
-      await upsertDashboardConfig(key, value, isActive);
+      const response = await fetch("/api/admin/dashboard-config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value, isActive }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Gagal menyimpan konfigurasi.");
       toast.success("Konfigurasi berhasil disimpan!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Gagal menyimpan konfigurasi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal menyimpan konfigurasi.");
     } finally {
       setSaving(null);
     }
@@ -123,6 +136,12 @@ export default function AdminDashboardConfigPage() {
             Kontrol tampilan dan fitur dashboard pengguna secara real-time.
           </p>
         </div>
+
+        {loadError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {loadError}
+          </div>
+        )}
 
         {/* Toggle: Show Challenges */}
         <ConfigCard

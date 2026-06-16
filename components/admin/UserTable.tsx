@@ -2,7 +2,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { UserProfile } from "@/types";
-import { adminUpdateUserProfile } from "@/lib/firestore";
 import toast from "react-hot-toast";
 import { Edit2, Loader2, X } from "lucide-react";
 
@@ -36,16 +35,26 @@ export default function UserTable({ users, searchQuery, onUpdate }: UserTablePro
     setSaving(true);
 
     try {
-      await adminUpdateUserProfile(editingUser.uid, {
-        name: editName,
-        totalPoints: Number(editPoints),
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: editingUser.uid,
+          name: editName,
+          totalPoints: Number(editPoints),
+        }),
       });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error || "Gagal memperbarui profil pengguna.");
+      }
+
       toast.success("Profil pengguna berhasil diperbarui.");
       setEditingUser(null);
       if (onUpdate) onUpdate();
     } catch (error) {
-      console.warn("Gagal memperbarui profil:", error);
-      toast.error("Gagal memperbarui profil pengguna.");
+      toast.error(error instanceof Error ? error.message : "Gagal memperbarui profil pengguna.");
     } finally {
       setSaving(false);
     }

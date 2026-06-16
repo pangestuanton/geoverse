@@ -146,6 +146,8 @@ export interface Badge {
 
 export interface UserBadge {
   badgeId: string;
+  badgeSlug?: string | null;
+  badge?: BadgeDB | null;
   unlocked: boolean;
   unlockedAt: Date | null;
 }

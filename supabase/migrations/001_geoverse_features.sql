@@ -190,6 +190,23 @@ VALUES
   ('penggerak-komunitas', 'Penggerak Komunitas', 'Kamu sudah menyelesaikan tantangan komunitas.', '🤝', 'tantangan', true)
 ON CONFLICT (slug) DO NOTHING;
 
+UPDATE public.badges
+SET icon = CASE slug
+  WHEN 'pemula-hijau' THEN U&'\+01F331'
+  WHEN 'sahabat-geothermal' THEN U&'\+01F30B'
+  WHEN 'pejuang-pilah-sampah' THEN U&'\267B\FE0F'
+  WHEN 'konsisten-7-hari' THEN U&'\+01F525'
+  WHEN 'penggerak-komunitas' THEN U&'\+01F91D'
+  ELSE icon
+END
+WHERE slug IN (
+  'pemula-hijau',
+  'sahabat-geothermal',
+  'pejuang-pilah-sampah',
+  'konsisten-7-hari',
+  'penggerak-komunitas'
+);
+
 
 -- 10. Row Level Security (RLS) Policies
 -- ============================================================
@@ -212,11 +229,11 @@ CREATE POLICY "users_insert_own" ON public.users
 -- users admin policies
 CREATE POLICY "users_admin_select" ON public.users
   FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 CREATE POLICY "users_admin_update" ON public.users
   FOR UPDATE USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -235,11 +252,11 @@ CREATE POLICY "greenlogs_user_insert" ON public.green_logs
 -- green_logs admin policies
 CREATE POLICY "greenlogs_admin_select" ON public.green_logs
   FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 CREATE POLICY "greenlogs_admin_update" ON public.green_logs
   FOR UPDATE USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -252,7 +269,7 @@ CREATE POLICY "modules_select_published" ON public.modules
   FOR SELECT USING (status = 'published');
 CREATE POLICY "modules_admin_all" ON public.modules
   FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -265,7 +282,7 @@ CREATE POLICY "quiz_select_active" ON public.quiz_questions
   FOR SELECT USING (is_deleted = false);
 CREATE POLICY "quiz_admin_all" ON public.quiz_questions
   FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -278,7 +295,7 @@ CREATE POLICY "badges_select_active" ON public.badges
   FOR SELECT USING (is_active = true);
 CREATE POLICY "badges_admin_all" ON public.badges
   FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -291,7 +308,7 @@ CREATE POLICY "user_badges_select" ON public.user_badges
   FOR SELECT USING (user_id::text = auth.uid()::text);
 CREATE POLICY "user_badges_admin_select" ON public.user_badges
   FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -310,7 +327,7 @@ CREATE POLICY "user_progress_update_own" ON public.user_progress
   FOR UPDATE USING (user_id::text = auth.uid()::text);
 CREATE POLICY "user_progress_admin_select" ON public.user_progress
   FOR SELECT USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
 
 
@@ -323,5 +340,5 @@ CREATE POLICY "dashboard_config_select" ON public.dashboard_config
   FOR SELECT USING (is_active = true);
 CREATE POLICY "dashboard_config_admin_all" ON public.dashboard_config
   FOR ALL USING (
-    (SELECT role FROM public.users WHERE uid = auth.uid()::text) = 'admin'
+    (SELECT role FROM public.users WHERE uid::text = auth.uid()::text) = 'admin'
   );
