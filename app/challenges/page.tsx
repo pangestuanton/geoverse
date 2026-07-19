@@ -17,10 +17,10 @@ function ChallengesContent() {
     <Sidebar>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
             Tantangan Aksi Iklim
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-stone-400 mt-1 text-sm">
             Ikuti tantangan komunitas untuk membangun kebiasaan hijau yang konsisten.
           </p>
         </div>

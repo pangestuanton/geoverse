@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none">
+  <defs>
+    <linearGradient id="earthGradM" x1="0" y1="0" x2="28" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0d9488"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="steamGradM" x1="0" y1="56" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fef3c7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="28" cy="28" r="26" fill="url(#earthGradM)"/>
+  <path d="M8 32 Q18 24 28 28 Q38 32 48 26" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+  <path d="M6 38 Q18 30 28 34 Q38 38 50 32" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/>
+  <path d="M22 48 Q26 42 24 36 Q22 30 26 24" stroke="url(#steamGradM)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M30 48 Q34 42 32 36 Q30 30 34 24" stroke="url(#steamGradM)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M40 22 L44 18 L48 22 L44 20 Z" fill="#fcd34d" opacity="0.9"/>
+  <circle cx="44" cy="16" r="2" fill="#fde68a" opacity="0.6"/>
+  <path d="M2 44 Q14 40 28 42 Q42 44 54 40" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

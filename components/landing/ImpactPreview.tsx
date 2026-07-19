@@ -29,26 +29,26 @@ function AnimatedCounter({ target, duration = 2 }: { target: number; duration?: 
 }
 
 const metrics = [
-  { icon: Leaf, value: 128, label: "aksi hijau tercatat", color: "text-emerald-500", bg: "bg-emerald-50" },
-  { icon: Recycle, value: 46, label: "kg sampah terpilah", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Star, value: 320, label: "poin komunitas terkumpul", color: "text-amber-500", bg: "bg-amber-50" },
+  { icon: Leaf, value: 128, label: "aksi hijau tercatat", color: "text-brand-500", bg: "bg-brand-50" },
+  { icon: Recycle, value: 46, label: "kg sampah terpilah", color: "text-teal-500", bg: "bg-teal-50" },
+  { icon: Star, value: 320, label: "poin komunitas terkumpul", color: "text-earth-500", bg: "bg-earth-50" },
 ];
 
 export default function ImpactPreview() {
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 sm:py-28 bg-white">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-charcoal-600 mb-4 tracking-tight">
             Dampak Komunitas GeoVerse
           </h2>
-          <p className="text-slate-500 max-w-2xl mx-auto">
-            Angka-angka ini adalah gambaran dari aksi kecil yang dilakukan bersama.
+          <p className="text-stone-500 max-w-2xl mx-auto">
+            Setiap aksi kecil yang tercatat adalah bagian dari perubahan besar untuk lingkungan.
           </p>
         </motion.div>
 
@@ -56,39 +56,38 @@ export default function ImpactPreview() {
           {metrics.map((metric, i) => (
             <motion.div
               key={metric.label}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="bg-white rounded-2xl p-8 text-center border border-slate-100 hover:border-emerald-200 hover:shadow-lg transition-all"
+              className="bg-surface rounded-2xl p-8 text-center border border-stone-100 hover:border-brand-200 hover:shadow-card-hover transition-all"
             >
               <div className={`w-16 h-16 ${metric.bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                 <metric.icon className={`w-8 h-8 ${metric.color}`} />
               </div>
-              <p className="text-4xl font-bold text-slate-800 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <p className="text-4xl font-extrabold text-charcoal-600 mb-2">
                 <AnimatedCounter target={metric.value} />
               </p>
-              <p className="text-sm text-slate-500">{metric.label}</p>
+              <p className="text-sm text-stone-400">{metric.label}</p>
             </motion.div>
           ))}
         </div>
 
-        {/* Closing CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center bg-gradient-to-r from-emerald-50 to-green-50 rounded-3xl p-12 border border-emerald-100"
+          className="text-center bg-gradient-to-r from-brand-50 via-teal-50 to-leaf-50 rounded-3xl p-12 sm:p-14 border border-brand-100"
         >
-          <h3 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Mulai dari aksi kecil, bangun kebiasaan hijau yang lebih besar.
+          <h3 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 mb-4">
+            Mulai dari aksi kecil, bangun masa depan yang lebih hijau.
           </h3>
-          <p className="text-slate-500 mb-8 max-w-lg mx-auto">
-            Bergabung dengan GeoVerse dan jadikan kebiasaan harian sebagai langkah nyata untuk lingkungan.
+          <p className="text-stone-500 mb-8 max-w-lg mx-auto">
+            Bergabung dengan GeoVerse dan jadikan setiap kebiasaan harian sebagai langkah nyata untuk bumi.
           </p>
           <Link
             href="/login"
-            className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-xl font-semibold text-base transition-all hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-10 py-4 rounded-xl font-bold text-base transition-all hover:shadow-lg hover:shadow-brand-500/25 active:scale-[0.98]"
           >
             Masuk ke GeoVerse
           </Link>

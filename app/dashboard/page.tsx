@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const DashboardChart = dynamic(() => import("@/components/dashboard/DashboardChart"), {
   ssr: false,
   loading: () => (
-    <div className="h-[280px] bg-white border border-emerald-100 rounded-2xl animate-pulse flex items-center justify-center text-slate-400">
+    <div className="h-[280px] bg-white border border-brand-100 rounded-2xl animate-pulse flex items-center justify-center text-stone-400 text-sm">
       Memuat Grafik...
     </div>
   )
@@ -34,10 +34,10 @@ export default function DashboardPage() {
   );
 }
 
-const ANNOUNCEMENT_STYLES = {
-  info: "bg-blue-50 border-blue-200 text-blue-800",
-  success: "bg-emerald-50 border-emerald-200 text-emerald-800",
-  warning: "bg-amber-50 border-amber-200 text-amber-800",
+const ANNOUNCEMENT_STYLES: Record<string, string> = {
+  info: "bg-sky-50 border-sky-200 text-sky-800",
+  success: "bg-leaf-50 border-leaf-200 text-leaf-800",
+  warning: "bg-earth-50 border-earth-200 text-earth-800",
   danger: "bg-red-50 border-red-200 text-red-800",
 };
 
@@ -52,23 +52,22 @@ function DashboardContent() {
     getDashboardConfig().then(setDashConfig).catch(console.error);
   }, []);
 
-  if (userLoading || logsLoading) return <Sidebar><LoadingSpinner /></Sidebar>;
+  if (userLoading || logsLoading) return <Sidebar><LoadingSpinner text="Memuat dashboard..." /></Sidebar>;
 
   const completedModuleIds = progress.filter((p) => p.completed).map((p) => p.moduleId);
-  // Prioritaskan displayName (custom name) dari useAuth, lalu profile, lalu fallback
   const displayName = user?.displayName || profile?.displayName || profile?.name || "Pengguna";
   const earnedBadges = getEarnedBadgeCards(userBadges);
+  const approvedLogs = logs.filter((l) => l.status === "approved");
 
   return (
     <Sidebar>
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Halo, {displayName}! 👋
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
+              Halo, {displayName}!
             </h1>
-            <p className="text-slate-500 mt-1">
+            <p className="text-stone-400 mt-1 text-sm">
               Aksi kecil tetap berarti kalau dilakukan konsisten.
             </p>
           </div>
@@ -78,13 +77,12 @@ function DashboardContent() {
               alt=""
               width={48}
               height={48}
-              className="w-12 h-12 rounded-full border-2 border-emerald-200 object-cover"
+              className="w-12 h-12 rounded-full border-2 border-brand-200 object-cover shadow-sm"
               referrerPolicy="no-referrer"
             />
           )}
         </div>
 
-        {/* Admin Announcement Banner */}
         {dashConfig?.announcement && !announcementDismissed && (
           <div className={`border rounded-2xl px-4 py-3 flex items-start gap-3 text-sm ${ANNOUNCEMENT_STYLES[dashConfig.announcement.type]}`}>
             <Megaphone className="w-5 h-5 shrink-0 mt-0.5" />
@@ -97,42 +95,38 @@ function DashboardContent() {
             <button
               onClick={() => setAnnouncementDismissed(true)}
               className="p-0.5 hover:opacity-70 transition-opacity shrink-0"
+              aria-label="Tutup pengumuman"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* Offline fallback warning */}
         {isOffline && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm animate-fade-in-up">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 animate-pulse" />
+          <div className="bg-earth-50 border border-earth-200 text-earth-800 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm animate-fade-in-up">
+            <AlertTriangle className="w-5 h-5 text-earth-600 shrink-0" />
             <div className="flex-1">
-              <span className="font-semibold">Mode Offline Aktif</span> - Perangkat Anda sedang offline. Beberapa data terbaru mungkin tidak termuat.
+              <span className="font-semibold">Mode Offline</span> &mdash; Beberapa data terbaru mungkin tidak termuat.
             </div>
           </div>
         )}
 
-        {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Modul Selesai" value={completedModuleIds.length} icon={BookOpen} color="text-blue-600" bgColor="bg-blue-50" />
+          <StatCard title="Modul Selesai" value={completedModuleIds.length} icon={BookOpen} color="text-sky-600" bgColor="bg-sky-50" />
           <StatCard title="Total Green Log" value={logs.length} icon={Leaf} />
-          <StatCard title="Poin Hijau" value={profile?.totalPoints || 0} icon={Star} color="text-amber-600" bgColor="bg-amber-50" />
-          <StatCard title="Badge Diperoleh" value={userBadges.filter((b) => b.unlocked).length} icon={Award} color="text-purple-600" bgColor="bg-purple-50" />
+          <StatCard title="Poin Hijau" value={profile?.totalPoints || 0} icon={Star} color="text-earth-600" bgColor="bg-earth-50" />
+          <StatCard title="Badge Diperoleh" value={userBadges.filter((b) => b.unlocked).length} icon={Award} color="text-teal-600" bgColor="bg-teal-50" />
         </div>
 
-        {/* Badge Preview */}
         <div className="space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Badge Terbuka
-              </h2>
-              <p className="text-sm text-slate-500 mt-1">
+              <h2 className="text-lg font-bold text-charcoal-500">Badge Terbuka</h2>
+              <p className="text-sm text-stone-400 mt-1">
                 Badge yang sudah kamu buka akan tampil di sini.
               </p>
             </div>
-            <Link href="/badges" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+            <Link href="/badges" className="text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors">
               Lihat semua
             </Link>
           </div>
@@ -144,32 +138,29 @@ function DashboardContent() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-6 text-center">
-              <Award className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
-              <p className="font-semibold text-slate-700">Belum ada badge terbuka</p>
-              <p className="mt-1 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed border-brand-200 bg-white p-8 text-center">
+              <Award className="mx-auto mb-3 h-10 w-10 text-brand-300" />
+              <p className="font-semibold text-charcoal-400">Belum ada badge terbuka</p>
+              <p className="mt-1 text-sm text-stone-400">
                 Ikuti modul belajar dan catat Green Log untuk mulai membuka badge.
               </p>
             </div>
           )}
         </div>
 
-        {/* Charts */}
-        <DashboardChart logs={logs} />
+        <DashboardChart logs={approvedLogs} />
 
-        {/* Recommended Module + Recent Logs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecommendedModule completedModuleIds={completedModuleIds} />
           <RecentGreenLogs logs={logs} />
         </div>
 
-        {/* CTA Buttons */}
         <div className="flex flex-wrap gap-4">
-          <Link href="/green-log" className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2">
+          <Link href="/green-log" className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 active:scale-[0.98] shadow-sm shadow-brand-500/20">
             <Leaf className="w-4 h-4" />
             Tambah Green Log
           </Link>
-          <Link href="/learn" className="bg-white hover:bg-emerald-50 text-emerald-700 border-2 border-emerald-200 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2">
+          <Link href="/learn" className="bg-white hover:bg-brand-50 text-brand-700 border-2 border-brand-200 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 active:scale-[0.98]">
             <BookOpen className="w-4 h-4" />
             Lanjut Belajar
           </Link>

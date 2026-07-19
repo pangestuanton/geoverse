@@ -23,10 +23,10 @@ function GreenLogContent() {
     <Sidebar>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
             Green Log
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-stone-400 mt-1 text-sm">
             Catat aksi pilah sampah dan kebiasaan hijau harianmu.
           </p>
         </div>
@@ -34,9 +34,9 @@ function GreenLogContent() {
         <GreenLogForm onSuccess={refetch} />
 
         <div>
-          <h2 className="text-lg font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Riwayat Green Log
-          </h2>
+            <h2 className="text-lg font-bold text-charcoal-500 mb-4">
+              Riwayat Green Log
+            </h2>
 
           {loading ? (
             <LoadingSpinner text="Memuat riwayat..." />

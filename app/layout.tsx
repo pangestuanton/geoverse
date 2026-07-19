@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "GeoVerse — Platform Edukasi Lingkungan Digital",
   description:
     "GeoVerse membantu anak muda Ulubelu memahami energi panas bumi, mencatat aksi pilah sampah, dan membangun kebiasaan hijau.",
+  icons: {
+    icon: "/logo/favicon.svg",
+  },
 };
 
 export default function RootLayout({

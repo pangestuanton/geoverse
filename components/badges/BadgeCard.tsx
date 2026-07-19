@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Award, Lock } from "lucide-react";
@@ -16,7 +15,6 @@ interface BadgeCardProps {
 
 function canRenderWithNextImage(src: string) {
   if (src.startsWith("/")) return true;
-
   try {
     const host = new URL(src).hostname;
     return host.endsWith(".supabase.co") || host === "lh3.googleusercontent.com";
@@ -35,20 +33,20 @@ function BadgeIcon({ icon, name, locked }: { icon?: string | null; name: string;
         alt=""
         width={56}
         height={56}
-        className={`mx-auto h-14 w-14 object-contain ${locked ? "grayscale" : ""}`}
+        className={`mx-auto h-14 w-14 object-contain ${locked ? "opacity-40" : ""}`}
       />
     );
   }
 
   if (safeIcon && !safeIcon.startsWith("http")) {
-    return <div className={`text-5xl ${locked ? "grayscale" : ""}`}>{safeIcon}</div>;
+    return <div className={`text-5xl ${locked ? "opacity-40" : ""}`}>{safeIcon}</div>;
   }
 
   return (
     <div
       aria-label={name}
-      className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ${
-        locked ? "grayscale" : ""
+      className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl ${
+        locked ? "bg-stone-100 text-stone-400" : "bg-brand-50 text-brand-500"
       }`}
     >
       <Award className="h-7 w-7" />
@@ -63,13 +61,13 @@ export default function BadgeCard({ badge, isUnlocked }: BadgeCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       className={`relative rounded-2xl border p-6 text-center transition-all ${
         isUnlocked
-          ? "border-emerald-200 bg-white shadow-sm hover:shadow-md"
-          : "border-slate-200 bg-slate-50 opacity-70"
+          ? "border-brand-200 bg-white shadow-card hover:shadow-card-hover"
+          : "border-stone-200 bg-stone-50/70"
       }`}
     >
       {!isUnlocked && (
         <div className="absolute right-3 top-3">
-          <Lock className="h-4 w-4 text-slate-400" />
+          <Lock className="h-4 w-4 text-stone-300" />
         </div>
       )}
 
@@ -77,22 +75,23 @@ export default function BadgeCard({ badge, isUnlocked }: BadgeCardProps) {
         <BadgeIcon icon={badge.icon} name={badge.name} locked={!isUnlocked} />
       </div>
 
-      <h3
-        className={`mb-2 font-semibold ${isUnlocked ? "text-slate-800" : "text-slate-500"}`}
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-      >
+      <h3 className={`mb-2 font-bold text-sm ${isUnlocked ? "text-charcoal-500" : "text-stone-400"}`}>
         {badge.name}
       </h3>
 
-      <p className={`mb-3 text-sm ${isUnlocked ? "text-slate-500" : "text-slate-400"}`}>{badge.description}</p>
+      <p className={`mb-3 text-xs ${isUnlocked ? "text-stone-400" : "text-stone-300"}`}>
+        {badge.description}
+      </p>
 
-      <div
-        className={`inline-block rounded-full px-3 py-1.5 text-xs font-medium ${
-          isUnlocked ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+      <span
+        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+          isUnlocked
+            ? "bg-brand-50 text-brand-600 border-brand-200"
+            : "bg-stone-100 text-stone-400 border-stone-200"
         }`}
       >
         {isUnlocked ? "Terbuka" : badge.requirement || "Belum terbuka"}
-      </div>
+      </span>
     </motion.div>
   );
 }

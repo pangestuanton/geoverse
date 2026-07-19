@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
   }, [user, loading, router]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner text="Memverifikasi sesi..." />;
   if (!user) return null;
 
   return <>{children}</>;

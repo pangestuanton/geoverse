@@ -93,7 +93,7 @@ export default function UserTable({ users, searchQuery, onUpdate }: UserTablePro
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-brand-700 font-bold text-xs">
                           {user.name.charAt(0)}
                         </div>
                       )}
@@ -108,7 +108,7 @@ export default function UserTable({ users, searchQuery, onUpdate }: UserTablePro
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => handleEditClick(user)}
-                      className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all hover:shadow-sm"
+                      className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-brand-700 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all hover:shadow-sm"
                     >
                       <Edit2 className="w-3 h-3" />
                       Ubah

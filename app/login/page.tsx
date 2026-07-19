@@ -1,13 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Leaf, Loader2, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, AlertCircle } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock, UserPlus, LogIn, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
 import { signInWithGoogle, signInWithEmailPassword, registerWithEmailPassword } from "@/lib/auth";
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from "@/lib/validations";
 import toast from "react-hot-toast";
+import Logo from "@/components/common/Logo";
 
 type Mode = "login" | "register";
 
@@ -99,8 +100,8 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0fdf4]">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -108,27 +109,20 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#ecfdf5] via-[#f0fdf4] to-white px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-background to-teal-50/30 px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 p-8 sm:p-10">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-emerald-800" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              GeoVerse
-            </span>
+        <div className="bg-white rounded-2xl shadow-elevated border border-brand-100 p-8 sm:p-10">
+          <div className="flex justify-center mb-8">
+            <Logo variant="full" size="lg" />
           </div>
 
-          {/* Title */}
-          <h1 className="text-2xl font-bold text-center text-slate-900 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl font-bold text-center text-charcoal-600 mb-2 tracking-tight">
             {mode === "login" ? "Masuk ke GeoVerse" : "Daftar GeoVerse"}
           </h1>
-          <p className="text-sm text-slate-500 text-center mb-6 leading-relaxed">
+          <p className="text-sm text-stone-500 text-center mb-6 leading-relaxed">
             {mode === "login"
-              ? "Selamat datang kembali! Masuk untuk lanjutkan aksi hijau."
-              : "Bergabunglah dan mulai perjalanan aksi hijau bersama kami."}
+              ? "Selamat datang kembali! Lanjutkan perjalanan aksi hijau hari ini."
+              : "Bergabung dan mulai perjalanan aksi hijau bersama komunitas."}
           </p>
 
           {/* Google Sign In */}
@@ -136,7 +130,7 @@ export default function LoginPage() {
             id="btn-google-login"
             onClick={handleGoogleLogin}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 py-3.5 px-6 rounded-xl font-semibold text-sm text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-5"
+             className="w-full flex items-center justify-center gap-3 bg-white border-2 border-stone-200 hover:border-brand-300 hover:bg-brand-50 py-3.5 px-6 rounded-xl font-semibold text-sm text-charcoal-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
             {googleLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -153,11 +147,11 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="relative mb-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-slate-400">atau dengan email</span>
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-stone-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-3 bg-white text-stone-400">atau dengan email</span>
             </div>
           </div>
 
@@ -171,7 +165,7 @@ export default function LoginPage() {
 
           {/* Register Success */}
           {registerSuccess && (
-            <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm px-4 py-3 rounded-xl mb-4">
+            <div className="flex items-start gap-2 bg-brand-50 border-brand-200 text-brand-700 text-sm px-4 py-3 rounded-xl mb-4">
               <span>✅ Pendaftaran berhasil! Cek email Anda untuk konfirmasi akun, lalu masuk.</span>
             </div>
           )}
@@ -181,15 +175,15 @@ export default function LoginPage() {
             <form id="form-email-login" onSubmit={loginForm.handleSubmit(handleEmailLogin)} className="space-y-4">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-charcoal-300 mb-1.5">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     id="input-login-email"
                     type="email"
                     placeholder="email@contoh.com"
                     {...loginForm.register("email")}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-100 transition-all"
                   />
                 </div>
                 {loginForm.formState.errors.email && (
@@ -199,20 +193,20 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-charcoal-300 mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     id="input-login-password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan password"
                     {...loginForm.register("password")}
-                    className="w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-100 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-charcoal-500"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -226,7 +220,7 @@ export default function LoginPage() {
                 id="btn-submit-login"
                 type="submit"
                 disabled={loginForm.formState.isSubmitting}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
+                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
               >
                 {loginForm.formState.isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -239,9 +233,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchMode("register")}
-                className="w-full text-sm text-slate-600 hover:text-emerald-600 transition-colors py-2"
+                className="w-full text-sm text-charcoal-500 hover:text-brand-600 transition-colors py-2"
               >
-                Belum punya akun? <span className="font-semibold text-emerald-600">Daftar sekarang</span>
+                Belum punya akun? <span className="font-semibold text-brand-600">Daftar sekarang</span>
               </button>
             </form>
           )}
@@ -251,15 +245,15 @@ export default function LoginPage() {
             <form id="form-email-register" onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-charcoal-300 mb-1.5">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     id="input-register-email"
                     type="email"
                     placeholder="email@contoh.com"
                     {...registerForm.register("email")}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-100 transition-all"
                   />
                 </div>
                 {registerForm.formState.errors.email && (
@@ -269,20 +263,20 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-charcoal-300 mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     id="input-register-password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Min. 8 karakter (huruf + angka)"
                     {...registerForm.register("password")}
-                    className="w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-100 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-charcoal-500"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -294,20 +288,20 @@ export default function LoginPage() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Konfirmasi Password</label>
+                <label className="block text-sm font-medium text-charcoal-300 mb-1.5">Konfirmasi Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                   <input
                     id="input-register-confirm"
                     type={showConfirm ? "text" : "password"}
                     placeholder="Ulangi password"
                     {...registerForm.register("confirmPassword")}
-                    className="w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-100 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-charcoal-500"
                   >
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -321,7 +315,7 @@ export default function LoginPage() {
                 id="btn-submit-register"
                 type="submit"
                 disabled={registerForm.formState.isSubmitting}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
+                className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
               >
                 {registerForm.formState.isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -334,9 +328,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchMode("login")}
-                className="w-full text-sm text-slate-600 hover:text-emerald-600 transition-colors py-2"
+                className="w-full text-sm text-charcoal-500 hover:text-brand-600 transition-colors py-2"
               >
-                Sudah punya akun? <span className="font-semibold text-emerald-600">Masuk</span>
+                Sudah punya akun? <span className="font-semibold text-brand-600">Masuk</span>
               </button>
             </form>
           )}
@@ -346,14 +340,14 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
+              className="w-full bg-brand-500 hover:bg-brand-600 text-white py-3.5 rounded-xl font-semibold text-sm transition-all"
             >
               Masuk Sekarang
             </button>
           )}
 
           {/* Privacy Note */}
-          <p className="text-xs text-slate-400 text-center mt-6 leading-relaxed">
+          <p className="text-xs text-stone-400 text-center mt-6 leading-relaxed">
             Data digunakan hanya untuk mencatat progres belajar dan aksi lingkungan pengguna.
           </p>
         </div>

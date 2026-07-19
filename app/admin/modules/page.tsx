@@ -30,9 +30,7 @@ export default function AdminModulesPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && isAdmin) {
-      void Promise.resolve().then(fetchModules);
-    }
+    if (!loading && isAdmin) void Promise.resolve().then(fetchModules);
   }, [loading, isAdmin, fetchModules]);
 
   const handleCreate = async (data: ModuleFormData) => {
@@ -48,7 +46,7 @@ export default function AdminModulesPage() {
     fetchModules();
   };
 
-  if (loading || dataLoading) return <AdminSidebar><LoadingSpinner /></AdminSidebar>;
+  if (loading || dataLoading) return <AdminSidebar><LoadingSpinner text="Memuat modul..." /></AdminSidebar>;
   if (!isAdmin) return null;
 
   const publishedCount = modules.filter((m) => m.status === "published").length;
@@ -59,20 +57,20 @@ export default function AdminModulesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-2xl font-extrabold text-charcoal-600 tracking-tight">
               Kelola Modul
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              {modules.length} modul total ·{" "}
-              <span className="text-emerald-600">{publishedCount} published</span> ·{" "}
-              <span className="text-slate-400">{draftCount} draft</span>
+            <p className="text-stone-400 text-sm mt-1">
+              {modules.length} modul total &middot;{" "}
+              <span className="text-leaf-600 font-medium">{publishedCount} published</span> &middot;{" "}
+              <span className="text-stone-400">{draftCount} draft</span>
             </p>
           </div>
           {!showCreateForm && (
             <button
               id="btn-create-module"
               onClick={() => setShowCreateForm(true)}
-              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors"
+              className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors"
             >
               <Plus className="w-4 h-4" />
               Buat Modul Baru
@@ -80,63 +78,53 @@ export default function AdminModulesPage() {
           )}
         </div>
 
-        {/* Create Form */}
         {showCreateForm && (
-          <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-6">
-            <h2 className="font-bold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Buat Modul Baru
-            </h2>
+          <div className="bg-white rounded-2xl border border-brand-100 shadow-card p-6">
+            <h2 className="font-bold text-charcoal-500 mb-4">Buat Modul Baru</h2>
             <ModuleForm onSubmit={handleCreate} onCancel={() => setShowCreateForm(false)} />
           </div>
         )}
 
-        {/* Modules Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-brand-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-emerald-50 border-b border-emerald-100">
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Judul Modul</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Kategori</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Durasi</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Tingkat</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Urutan</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Status</th>
-                  <th className="text-left px-6 py-3 font-semibold text-slate-700">Aksi</th>
+                <tr className="bg-brand-50 border-b border-brand-100">
+                  {["Judul Modul", "Kategori", "Durasi", "Tingkat", "Urutan", "Status", "Aksi"].map((h) => (
+                    <th key={h} className="text-left px-6 py-3 font-semibold text-charcoal-400 text-xs uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {modules.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400">
+                    <td colSpan={7} className="text-center py-12 text-stone-400">
                       <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>Belum ada modul. Buat modul pertama!</p>
                     </td>
                   </tr>
                 ) : (
                   modules.map((mod) => (
-                    <tr key={mod.id} className="border-b border-slate-50 hover:bg-emerald-50/30 transition-colors">
+                    <tr key={mod.id} className="border-b border-stone-50 hover:bg-brand-50/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800">{mod.title}</div>
-                        <div className="text-xs text-slate-400 font-mono">{mod.slug}</div>
+                        <div className="font-semibold text-charcoal-400">{mod.title}</div>
+                        <div className="text-xs text-stone-400 font-mono">{mod.slug}</div>
                       </td>
-                      <td className="px-6 py-4 text-slate-500">{mod.categoryLabel}</td>
-                      <td className="px-6 py-4 text-slate-500">{mod.readingTime}</td>
+                      <td className="px-6 py-4 text-stone-500">{mod.categoryLabel}</td>
+                      <td className="px-6 py-4 text-stone-500">{mod.readingTime}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          mod.difficulty === "Pemula" ? "bg-emerald-100 text-emerald-700" :
-                          mod.difficulty === "Menengah" ? "bg-amber-100 text-amber-700" :
-                          "bg-red-100 text-red-700"
-                        }`}>
-                          {mod.difficulty}
-                        </span>
+                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
+                          mod.difficulty === "Pemula" ? "bg-leaf-50 text-leaf-600 border-leaf-200" :
+                          mod.difficulty === "Menengah" ? "bg-earth-50 text-earth-600 border-earth-200" :
+                          "bg-red-50 text-red-600 border-red-200"
+                        }`}>{mod.difficulty}</span>
                       </td>
-                      <td className="px-6 py-4 text-slate-500">{mod.sortOrder}</td>
+                      <td className="px-6 py-4 text-stone-500">{mod.sortOrder}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border ${
                           mod.status === "published"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
+                            ? "bg-leaf-50 text-leaf-600 border-leaf-200"
+                            : "bg-stone-100 text-stone-400 border-stone-200"
                         }`}>
                           {mod.status === "published" ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                           {mod.status === "published" ? "Published" : "Draft"}
@@ -145,7 +133,7 @@ export default function AdminModulesPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/admin/modules/${mod.id}`}
-                          className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                          className="inline-flex items-center gap-1.5 text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 px-3 py-1.5 rounded-lg font-medium transition-colors"
                         >
                           <Edit className="w-3.5 h-3.5" />
                           Kelola

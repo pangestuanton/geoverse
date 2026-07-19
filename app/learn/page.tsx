@@ -27,19 +27,19 @@ function LearnContent() {
     <Sidebar>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
             Modul Belajar
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-stone-400 mt-1 text-sm">
             Pelajari energi panas bumi, pemilahan sampah, dan aksi iklim melalui modul singkat.
           </p>
         </div>
 
         {categories.map((cat) => (
           <div key={cat.key}>
-            <h2 className="text-lg font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              {cat.label}
-            </h2>
+              <h2 className="text-lg font-bold text-charcoal-500 mb-4">
+                {cat.label}
+              </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {modules
                 .filter((m) => m.category === cat.key)

@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 const AdminChart = dynamic(() => import("@/components/admin/AdminChart"), {
   ssr: false,
   loading: () => (
-    <div className="h-[280px] bg-white border border-emerald-100 rounded-2xl animate-pulse flex items-center justify-center text-slate-400">
+    <div className="h-[280px] bg-white border border-brand-100 rounded-2xl animate-pulse flex items-center justify-center text-stone-400 text-sm">
       Memuat Grafik...
     </div>
   )
@@ -43,7 +43,7 @@ export default function AdminPage() {
     }
   }, [authLoading, isAdmin]);
 
-  if (authLoading || loading) return <AdminSidebar><LoadingSpinner /></AdminSidebar>;
+  if (authLoading || loading) return <AdminSidebar><LoadingSpinner text="Memuat ringkasan admin..." /></AdminSidebar>;
   if (!isAdmin) return null;
 
   const totalKg = logs.reduce((sum, l) => sum + (l.estimatedKg || 0), 0);
@@ -52,10 +52,10 @@ export default function AdminPage() {
     <AdminSidebar>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
             Ringkasan Platform
           </h1>
-          <p className="text-slate-500 mt-1">Monitor aktivitas GeoVerse secara keseluruhan.</p>
+          <p className="text-stone-400 mt-1 text-sm">Monitor aktivitas GeoVerse secara keseluruhan.</p>
         </div>
 
         {error && (
@@ -72,9 +72,7 @@ export default function AdminPage() {
           <AdminStatCard title="Tantangan Aktif" value={4} icon={Target} />
         </div>
 
-        <div>
-          <AdminChart logs={logs} />
-        </div>
+        <AdminChart logs={logs} />
       </div>
     </AdminSidebar>
   );

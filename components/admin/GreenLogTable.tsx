@@ -11,8 +11,8 @@ interface GreenLogTableProps {
 }
 
 const statusConfig = {
-  pending: { color: "bg-yellow-100 text-yellow-700", icon: Clock, label: "Menunggu" },
-  approved: { color: "bg-emerald-100 text-emerald-700", icon: CheckCircle, label: "Disetujui" },
+  pending: { color: "bg-earth-100 text-earth-700", icon: Clock, label: "Menunggu" },
+  approved: { color: "bg-leaf-100 text-leaf-700", icon: CheckCircle, label: "Disetujui" },
   rejected: { color: "bg-red-100 text-red-700", icon: XCircle, label: "Ditolak" },
 };
 
@@ -90,12 +90,12 @@ export default function GreenLogTable({ logs, onApprove, onReject }: GreenLogTab
             onClick={() => setFilter(s)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               filter === s
-                ? "bg-emerald-500 text-white shadow-sm"
+                ? "bg-brand-600 text-white shadow-sm"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-600"
             }`}
           >
             {s === "all" ? "Semua" : STATUS_LABELS[s]}{" "}
-            <span className={`ml-1 text-xs ${filter === s ? "text-emerald-100" : "text-slate-400"}`}>
+            <span className={`ml-1 text-xs ${filter === s ? "text-brand-100" : "text-slate-400"}`}>
               ({counts[s]})
             </span>
           </button>
@@ -163,7 +163,7 @@ export default function GreenLogTable({ logs, onApprove, onReject }: GreenLogTab
                             id={`btn-approve-${log.id}`}
                             onClick={() => log.id && handleApprove(log.id)}
                             disabled={isProcessing}
-                            className="text-xs bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-2.5 py-1.5 rounded-lg mr-1.5 transition-colors font-medium"
+                            className="text-xs bg-brand-600 hover:bg-brand-600 disabled:opacity-50 text-white px-2.5 py-1.5 rounded-lg mr-1.5 transition-colors font-medium"
                           >
                             {isProcessing ? "..." : "Setujui"}
                           </button>

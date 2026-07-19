@@ -54,10 +54,10 @@ function ModuleDetailContent() {
     return (
       <Sidebar>
         <div className="text-center py-20">
-          <h2 className="text-xl font-semibold text-slate-800 mb-2">Modul tidak ditemukan</h2>
-          <p className="text-slate-500 mb-4">Modul yang kamu cari tidak tersedia atau sedang dalam perbaikan.</p>
-          <Link href="/learn" className="text-emerald-600 hover:text-emerald-700 font-medium">
-            {"<-"} Kembali ke daftar modul
+          <h2 className="text-xl font-bold text-charcoal-500 mb-2">Modul tidak ditemukan</h2>
+          <p className="text-stone-400 mb-4 text-sm">Modul yang kamu cari tidak tersedia atau sedang dalam perbaikan.</p>
+          <Link href="/learn" className="text-brand-600 hover:text-brand-700 font-semibold text-sm">
+            &larr; Kembali ke daftar modul
           </Link>
         </div>
       </Sidebar>
@@ -151,7 +151,7 @@ function ModuleDetailContent() {
   return (
     <Sidebar>
       <div className="max-w-3xl mx-auto space-y-8">
-        <Link href="/learn" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+          <Link href="/learn" className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-brand-600 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Kembali ke daftar modul
         </Link>

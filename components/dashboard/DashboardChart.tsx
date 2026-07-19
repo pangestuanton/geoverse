@@ -3,11 +3,23 @@ import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import type { GreenLog } from "@/types";
 
-const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#6b7280"];
+const PIE_COLORS = ["#2d9464", "#0d9488", "#f59e0b", "#0ea5e9", "#ef4444", "#78716c"];
 
 interface DashboardChartProps {
   logs: GreenLog[];
 }
+
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-stone-200 rounded-lg shadow-card px-3 py-2 text-xs">
+        <p className="font-semibold text-charcoal-500">{label}</p>
+        <p className="text-brand-600">{payload[0].value} aksi</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function DashboardChart({ logs }: DashboardChartProps) {
   const weeklyData = useMemo(() => {
@@ -32,39 +44,33 @@ export default function DashboardChart({ logs }: DashboardChartProps) {
 
   if (logs.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-8 shadow-sm border border-emerald-100 text-center">
-        <p className="text-slate-500">Belum ada data untuk ditampilkan. Mulai catat Green Log untuk melihat grafikmu.</p>
+      <div className="bg-white rounded-2xl p-8 shadow-card border border-brand-100 text-center">
+        <p className="text-stone-400 text-sm">Belum ada data untuk ditampilkan. Mulai catat Green Log untuk melihat grafik aktivitas kamu.</p>
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Weekly Activity */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100">
-        <h3 className="font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Aktivitas Green Log Mingguan
-        </h3>
+      <div className="bg-white rounded-2xl p-6 shadow-card border border-brand-100">
+        <h3 className="font-bold text-charcoal-500 mb-4">Aktivitas Green Log Mingguan</h3>
         <ResponsiveContainer width="100%" height={240} debounce={100}>
           <BarChart data={weeklyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-            <Tooltip />
-            <Bar dataKey="jumlah" fill="#10b981" radius={[6, 6, 0, 0]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: "#78716c" }} allowDecimals={false} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="jumlah" fill="#2d9464" radius={[6, 6, 0, 0]} maxBarSize={40} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Category Distribution */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100">
-        <h3 className="font-semibold text-slate-800 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Distribusi Kategori Sampah
-        </h3>
+      <div className="bg-white rounded-2xl p-6 shadow-card border border-brand-100">
+        <h3 className="font-bold text-charcoal-500 mb-4">Distribusi Kategori Sampah</h3>
         {categoryData.length > 0 ? (
           <ResponsiveContainer width="100%" height={240} debounce={100}>
             <PieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name }) => name}>
+              <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} innerRadius={40} dataKey="value" label={({ name }) => name}>
                 {categoryData.map((_, i) => (
                   <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                 ))}
@@ -74,7 +80,7 @@ export default function DashboardChart({ logs }: DashboardChartProps) {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-slate-500 text-center py-12">Belum ada data kategori.</p>
+          <p className="text-stone-400 text-sm text-center py-12">Belum ada data kategori.</p>
         )}
       </div>
     </div>

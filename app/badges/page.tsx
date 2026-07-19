@@ -47,10 +47,10 @@ function BadgesContent() {
     <Sidebar>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-600 tracking-tight">
             Badge & Penghargaan
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-stone-400 mt-1 text-sm">
             Kumpulkan badge dengan menyelesaikan aksi hijau dan modul belajar.
           </p>
         </div>
@@ -58,9 +58,9 @@ function BadgesContent() {
         {error ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</div>
         ) : badges.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-8 text-center">
-            <p className="font-semibold text-slate-700">Belum ada badge aktif</p>
-            <p className="mt-1 text-sm text-slate-500">Badge akan tampil setelah admin mengaktifkannya.</p>
+          <div className="rounded-2xl border border-dashed border-brand-200 bg-white p-8 text-center">
+            <p className="font-semibold text-charcoal-400">Belum ada badge aktif</p>
+            <p className="mt-1 text-sm text-stone-400">Badge akan tampil setelah admin mengaktifkannya.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
